@@ -61,9 +61,12 @@ function AppRoutes() {
 }
 
 function App() {
+  // Get basename for GitHub Pages
+  const basename = process.env.PUBLIC_URL || '/Visitor-Management-System';
+  
   return (
     <AuthProvider>
-      <Router>
+      <Router basename={basename}>
         <div className="App">
           <AppRoutes />
           <ToastContainer

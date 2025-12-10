@@ -2,6 +2,7 @@
   "name": "vendor-management-client",
   "version": "1.0.0",
   "private": true,
+  "homepage": "https://santirio18-cmyk.github.io/Visitor-Management-System",
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

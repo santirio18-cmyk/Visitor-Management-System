@@ -14,7 +14,22 @@
 
 ### 2. Connect Local Repository to GitHub
 
-After creating the repository, GitHub will show you commands. Use these:
+**Where to find the commands on GitHub:**
+
+After creating the repository, you'll be taken to your new repository page. On that page, you'll see a section titled:
+
+**"Quick setup — if you've done this kind of thing before"**
+
+This section appears in a gray box near the top of the page, right below the repository name. It will show you commands like:
+
+```
+…or create a new repository on the command line
+…or push an existing repository from the command line
+```
+
+Click on the **"push an existing repository from the command line"** tab to see the commands you need.
+
+**Use these commands:**
 
 ```bash
 # Add the remote repository (replace YOUR_USERNAME and REPO_NAME)

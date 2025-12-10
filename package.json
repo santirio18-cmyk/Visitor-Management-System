@@ -1,0 +1,23 @@
+{
+  "name": "vendor-management-system",
+  "version": "1.0.0",
+  "description": "Vendor Management System with visit request and approval mechanism",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && nodemon index.js",
+    "client": "cd client && npm start",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install",
+    "build": "cd client && npm run build",
+    "seed-requests": "cd server && node scripts/seedDummyRequests.js",
+    "create-approvers": "cd server && node scripts/createApprovers.js"
+  },
+  "keywords": ["vendor", "management", "warehouse"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.0.2"
+  }
+}
+

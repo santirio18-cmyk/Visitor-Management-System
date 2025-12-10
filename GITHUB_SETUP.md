@@ -32,29 +32,63 @@ OR
 
 #### Step 3: Select Your Files
 
-Navigate to: `/Users/santhoshpremkumar/Vendor Management System`
+**⚠️ Important:** GitHub's web interface doesn't let you select folders directly. You have two options:
 
-**Important files to upload:**
-- All files in `client/` folder
-- All files in `server/` folder (except `.env` and `*.db` files)
-- `package.json` files
-- `.gitignore`
-- `README.md`
-- `GITHUB_SETUP.md`
+**Option A: Drag and Drop (Easiest)**
+1. Open Finder on your Mac
+2. Navigate to: `/Users/santhoshpremkumar/Vendor Management System`
+3. Select all files and folders EXCEPT:
+   - `node_modules/` (skip this folder)
+   - `.env` files (skip these)
+   - `*.db` or `*.sqlite` files (skip database files)
+   - `.git/` folder (skip this)
+4. Drag the selected items directly onto the GitHub upload page
+5. GitHub will preserve the folder structure automatically!
+
+**Option B: Select Files Manually**
+1. Click "choose your files" on GitHub
+2. Navigate to: `/Users/santhoshpremkumar/Vendor Management System`
+3. You'll need to upload files in batches:
+   - First, upload root files: `package.json`, `.gitignore`, `README.md`, `GITHUB_SETUP.md`
+   - Then navigate into `client/` and select all files (but skip `node_modules/`)
+   - Then navigate into `server/` and select all files (but skip `node_modules/`, `.env`, and `*.db` files)
+   - Continue for subfolders like `client/src/`, `server/routes/`, etc.
+
+**Files to upload:**
+- ✅ All files in `client/` folder (except `node_modules/`)
+- ✅ All files in `server/` folder (except `node_modules/`, `.env`, and `*.db` files)
+- ✅ Root `package.json` files
+- ✅ `.gitignore`
+- ✅ `README.md`
+- ✅ `GITHUB_SETUP.md`
 
 **DO NOT upload:**
-- `node_modules/` folders
-- `.env` files
-- `*.db` or `*.sqlite` database files
-- `.git/` folder
+- ❌ `node_modules/` folders (too large, will be installed via npm)
+- ❌ `.env` files (contains sensitive data)
+- ❌ `*.db` or `*.sqlite` database files
+- ❌ `.git/` folder
 
-#### Step 4: Commit the Files
+#### Step 4: Create Folders on GitHub (if needed)
+
+If you uploaded files without folder structure:
+1. Click "Add file" → "Create new file"
+2. Type the folder name followed by `/` (e.g., `client/src/`)
+3. Type a filename (e.g., `README.md`)
+4. Add some content or leave it empty
+5. Click "Commit changes"
+6. Now you can upload files to that folder
+
+**Better approach:** Use drag and drop - it preserves folder structure automatically!
+
+#### Step 5: Commit the Files
 
 1. Scroll down to the bottom of the upload page
 2. Enter a commit message: "Initial commit: Vendor Management System"
 3. Click **"Commit changes"** button
 
 That's it! Your files are now on GitHub! 🎉
+
+**💡 Tip:** The drag and drop method is much easier as it automatically creates folders and preserves the structure!
 
 ---
 

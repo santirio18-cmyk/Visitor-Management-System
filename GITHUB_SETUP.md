@@ -14,6 +14,12 @@
 
 ### 2. Connect Local Repository to GitHub
 
+**⚠️ IMPORTANT: First, navigate to the project directory!**
+
+```bash
+cd "/Users/santhoshpremkumar/Vendor Management System"
+```
+
 **Where to find the commands on GitHub:**
 
 After creating the repository, you'll be taken to your new repository page. On that page, you'll see a section titled:
@@ -29,7 +35,7 @@ This section appears in a gray box near the top of the page, right below the rep
 
 Click on the **"push an existing repository from the command line"** tab to see the commands you need.
 
-**Use these commands:**
+**Use these commands (make sure you're in the project directory first!):**
 
 ```bash
 # Add the remote repository (replace YOUR_USERNAME and REPO_NAME)

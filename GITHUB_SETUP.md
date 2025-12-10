@@ -1,6 +1,64 @@
 # GitHub Setup Guide
 
-## Steps to Push to GitHub
+## Two Methods to Upload Your Project
+
+### Method 1: Upload Files Directly (Easier - No Command Line Required) ⭐
+
+This is the easiest method if you prefer using GitHub's web interface.
+
+#### Step 1: Create a New Repository on GitHub
+
+1. Go to [GitHub](https://github.com) and sign in
+2. Click the "+" icon in the top right corner
+3. Select "New repository"
+4. Name your repository (e.g., `vendor-management-system`)
+5. Choose **Public** visibility
+6. **DO NOT** initialize with README, .gitignore, or license
+7. Click "Create repository"
+
+#### Step 2: Upload Files Using GitHub's Upload Feature
+
+After creating the repository, you'll see a page with options. Look for:
+
+**"uploading an existing file"** link (usually in a gray box)
+
+OR
+
+1. Click the **"Add file"** button (green button, top right of the file list area)
+2. Select **"Upload files"** from the dropdown
+3. You can either:
+   - **Drag and drop** your entire project folder onto the page, OR
+   - Click **"choose your files"** and select all files from your project
+
+#### Step 3: Select Your Files
+
+Navigate to: `/Users/santhoshpremkumar/Vendor Management System`
+
+**Important files to upload:**
+- All files in `client/` folder
+- All files in `server/` folder (except `.env` and `*.db` files)
+- `package.json` files
+- `.gitignore`
+- `README.md`
+- `GITHUB_SETUP.md`
+
+**DO NOT upload:**
+- `node_modules/` folders
+- `.env` files
+- `*.db` or `*.sqlite` database files
+- `.git/` folder
+
+#### Step 4: Commit the Files
+
+1. Scroll down to the bottom of the upload page
+2. Enter a commit message: "Initial commit: Vendor Management System"
+3. Click **"Commit changes"** button
+
+That's it! Your files are now on GitHub! 🎉
+
+---
+
+### Method 2: Using Command Line (For Advanced Users)
 
 ### 1. Create a New Repository on GitHub
 
@@ -12,7 +70,7 @@
 6. **DO NOT** initialize with README, .gitignore, or license (we already have these)
 7. Click "Create repository"
 
-### 2. Connect Local Repository to GitHub
+### 2. Connect Local Repository to GitHub (Command Line Method)
 
 **⚠️ IMPORTANT: First, navigate to the project directory!**
 

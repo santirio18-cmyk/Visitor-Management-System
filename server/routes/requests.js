@@ -17,12 +17,6 @@ router.post('/public', [
   body('visitor_email').isEmail().withMessage('Valid email is required'),
   body('coming_from').trim().notEmpty().withMessage('Coming from location is required'),
   body('visitor_type').isIn(['Internal', 'External']).withMessage('Visitor type must be Internal or External'),
-  body('visitor_email').custom((value, { req }) => {
-    if (req.body.visitor_type === 'Internal' && value && !value.endsWith('@tvs.in')) {
-      throw new Error('Internal employees must use @tvs.in email address');
-    }
-    return true;
-  }),
   body('number_of_visitors').isInt({ min: 1 }).withMessage('Number of visitors must be at least 1'),
   body('additional_visitor_names').optional().trim()
 ], (req, res) => {
@@ -32,6 +26,14 @@ router.post('/public', [
   }
 
   const { visit_date, purpose, company_name, contact_number, number_of_visitors, visitor_name, visitor_email, additional_visitor_names, coming_from, visitor_type } = req.body;
+  
+  // Validate Internal employees must use @tvs.in email
+  if (visitor_type === 'Internal' && visitor_email && !visitor_email.endsWith('@tvs.in')) {
+    return res.status(400).json({ 
+      error: 'Internal employees must use @tvs.in email address' 
+    });
+  }
+  
   const db = getDb();
 
   try {

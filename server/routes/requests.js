@@ -15,6 +15,12 @@ router.post('/public', [
   body('contact_number').trim().notEmpty().withMessage('Contact number is required'),
   body('visitor_name').trim().notEmpty().withMessage('Your name is required'),
   body('visitor_email').isEmail().withMessage('Valid email is required'),
+  body('visitor_email').custom((value, { req }) => {
+    if (req.body.visitor_type === 'Internal' && !value.endsWith('@tvs.in')) {
+      throw new Error('Internal employees must use @tvs.in email address');
+    }
+    return true;
+  }),
   body('coming_from').trim().notEmpty().withMessage('Coming from location is required'),
   body('visitor_type').isIn(['Internal', 'External']).withMessage('Visitor type must be Internal or External'),
   body('number_of_visitors').isInt({ min: 1 }).withMessage('Number of visitors must be at least 1'),

@@ -120,8 +120,10 @@ const createTables = async () => {
         });
       });
 
-      // Create default warehouse manager if doesn't exist
+      // Create default warehouse manager and approvers if they don't exist
       createDefaultManager().then(() => {
+        return createApprovers();
+      }).then(() => {
         resolve();
       }).catch(reject);
     });

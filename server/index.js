@@ -23,7 +23,7 @@ app.use('/api/users', require('./routes/users'));
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Server is running' });
+  res.json({ status: 'OK', message: 'Server is running', database: db ? 'connected' : 'not connected' });
 });
 
 // Root route
@@ -41,13 +41,15 @@ app.get('/', (req, res) => {
   });
 });
 
-// Initialize database and start server
-db.init().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+// Start server first, then initialize database
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  // Initialize database after server starts
+  db.init().then(() => {
+    console.log('Database initialized successfully');
+  }).catch(err => {
+    console.error('Failed to initialize database:', err);
+    // Don't exit - let server run even if DB fails initially
   });
-}).catch(err => {
-  console.error('Failed to initialize database:', err);
-  process.exit(1);
 });
 

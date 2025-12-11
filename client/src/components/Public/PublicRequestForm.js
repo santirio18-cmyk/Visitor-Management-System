@@ -156,7 +156,6 @@ const PublicRequestForm = () => {
         // Something else happened
         toast.error('An error occurred. Please try again.');
       }
-    } catch (error) {
       const errorMessage = error.response?.data?.error || error.response?.data?.errors?.[0]?.msg || 'Failed to create request';
       toast.error(errorMessage);
       if (error.response?.data?.errors) {

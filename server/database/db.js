@@ -5,14 +5,19 @@ const fs = require('fs');
 const os = require('os');
 
 // Use /tmp on App Engine (writable), or current directory locally
-const DB_DIR = process.env.NODE_ENV === 'production' && os.platform() !== 'win32' 
-  ? '/tmp' 
-  : __dirname;
+// Check if we're on App Engine by checking for GAE environment
+const isAppEngine = process.env.GAE_ENV || process.env.GOOGLE_CLOUD_PROJECT;
+const DB_DIR = isAppEngine ? '/tmp' : __dirname;
 const DB_PATH = path.join(DB_DIR, 'vendor_management.db');
 
 // Ensure directory exists
-if (!fs.existsSync(DB_DIR)) {
-  fs.mkdirSync(DB_DIR, { recursive: true });
+try {
+  if (!fs.existsSync(DB_DIR)) {
+    fs.mkdirSync(DB_DIR, { recursive: true });
+  }
+  console.log(`Database will be stored at: ${DB_PATH}`);
+} catch (err) {
+  console.error(`Error creating DB directory: ${err.message}`);
 }
 
 let db;

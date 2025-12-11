@@ -42,14 +42,17 @@ app.get('/', (req, res) => {
 });
 
 // Start server first, then initialize database
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
   // Initialize database after server starts
-  db.init().then(() => {
+  try {
+    await db.init();
     console.log('Database initialized successfully');
-  }).catch(err => {
+  } catch (err) {
     console.error('Failed to initialize database:', err);
+    console.error('Error details:', err.message);
+    console.error('Stack:', err.stack);
     // Don't exit - let server run even if DB fails initially
-  });
+  }
 });
 

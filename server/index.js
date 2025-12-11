@@ -50,7 +50,6 @@ app.get('/', (req, res) => {
 // Start server first, then initialize database
 app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`Automated deployment test - ${new Date().toISOString()}`);
   // Initialize database after server starts
   try {
     await db.init();

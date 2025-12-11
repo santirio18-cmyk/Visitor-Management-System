@@ -137,6 +137,26 @@ const PublicRequestForm = () => {
       setSubmitted(true);
       toast.success('Visit request submitted successfully!');
     } catch (error) {
+      console.error('Submit error:', error);
+      if (error.response) {
+        // Server responded with error
+        const errorMessage = error.response.data?.error || error.response.data?.message || 'Failed to submit request. Please try again.';
+        toast.error(errorMessage);
+        if (error.response.data?.errors) {
+          const formErrors = {};
+          error.response.data.errors.forEach(err => {
+            formErrors[err.param] = err.msg;
+          });
+          setErrors(formErrors);
+        }
+      } else if (error.request) {
+        // Request made but no response (backend not reachable)
+        toast.error('⚠️ Backend server is not available. Please deploy the backend first. See DEPLOY_BACKEND_NOW.md for instructions.');
+      } else {
+        // Something else happened
+        toast.error('An error occurred. Please try again.');
+      }
+    } catch (error) {
       const errorMessage = error.response?.data?.error || error.response?.data?.errors?.[0]?.msg || 'Failed to create request';
       toast.error(errorMessage);
       if (error.response?.data?.errors) {

@@ -162,6 +162,72 @@ const createDefaultManager = async () => {
   });
 };
 
+const createApprovers = async () => {
+  const approvers = [
+    {
+      name: 'Jagadeesan Jayseelan',
+      email: 'jagadeeshan.jayaseelan@tvs.in',
+      password: 'J@ga2024#TVS!Warehouse',
+      role: 'warehouse_manager'
+    },
+    {
+      name: 'Varadarajan Krishnamachari',
+      email: 'varadarajan.krishnamachari@tvs.in',
+      password: 'V@ra2024#TVS!Approver2',
+      role: 'second_level_approver'
+    }
+  ];
+
+  const createApprover = (approver) => {
+    return new Promise((resolve) => {
+      db.get('SELECT * FROM users WHERE email = ?', [approver.email], async (err, existingUser) => {
+        if (err) {
+          console.error(`Error checking user ${approver.email}:`, err.message);
+          resolve();
+          return;
+        }
+
+        if (existingUser) {
+          // Update password if user exists
+          const hashedPassword = await bcrypt.hash(approver.password, 10);
+          db.run(
+            'UPDATE users SET password = ?, name = ?, role = ? WHERE email = ?',
+            [hashedPassword, approver.name, approver.role, approver.email],
+            function(updateErr) {
+              if (updateErr) {
+                console.error(`Error updating user ${approver.email}:`, updateErr.message);
+              } else {
+                console.log(`✓ Approver updated: ${approver.name} (${approver.email})`);
+              }
+              resolve();
+            }
+          );
+        } else {
+          // Create new user
+          const hashedPassword = await bcrypt.hash(approver.password, 10);
+          db.run(
+            'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
+            [approver.name, approver.email, hashedPassword, approver.role],
+            function(insertErr) {
+              if (insertErr) {
+                console.error(`Error creating user ${approver.email}:`, insertErr.message);
+              } else {
+                console.log(`✓ Approver created: ${approver.name} (${approver.email})`);
+              }
+              resolve();
+            }
+          );
+        }
+      });
+    });
+  };
+
+  // Create all approvers
+  for (const approver of approvers) {
+    await createApprover(approver);
+  }
+};
+
 const getDb = () => db;
 
 const close = () => {

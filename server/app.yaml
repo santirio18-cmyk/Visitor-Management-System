@@ -11,4 +11,5 @@ automatic_scaling:
 env_variables:
   NODE_ENV: production
   PORT: 8080
+  JWT_SECRET: visitor-management-secret-key-2024
 

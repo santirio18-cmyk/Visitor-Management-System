@@ -1,8 +1,19 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const bcrypt = require('bcryptjs');
+const fs = require('fs');
+const os = require('os');
 
-const DB_PATH = path.join(__dirname, 'vendor_management.db');
+// Use /tmp on App Engine (writable), or current directory locally
+const DB_DIR = process.env.NODE_ENV === 'production' && os.platform() !== 'win32' 
+  ? '/tmp' 
+  : __dirname;
+const DB_PATH = path.join(DB_DIR, 'vendor_management.db');
+
+// Ensure directory exists
+if (!fs.existsSync(DB_DIR)) {
+  fs.mkdirSync(DB_DIR, { recursive: true });
+}
 
 let db;
 

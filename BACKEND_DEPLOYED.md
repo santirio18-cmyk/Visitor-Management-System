@@ -48,3 +48,4 @@ Should show:
 
 **Almost done! Just set the JWT_SECRET environment variable and you're all set!** 🚀
 
+

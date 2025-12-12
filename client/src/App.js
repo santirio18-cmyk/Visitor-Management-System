@@ -7,6 +7,7 @@ import Register from './components/Auth/Register';
 import VisitorDashboard from './components/Dashboard/VisitorDashboard';
 import ManagerDashboard from './components/Dashboard/ManagerDashboard';
 import SecondLevelApproverDashboard from './components/Dashboard/SecondLevelApproverDashboard';
+import ThirdLevelApproverDashboard from './components/Dashboard/ThirdLevelApproverDashboard';
 import PublicRequestForm from './components/Public/PublicRequestForm';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import './App.css';
@@ -50,6 +51,8 @@ function AppRoutes() {
               <VisitorDashboard />
             ) : user?.role === 'second_level_approver' ? (
               <SecondLevelApproverDashboard />
+            ) : user?.role === 'third_level_approver' ? (
+              <ThirdLevelApproverDashboard />
             ) : (
               <ManagerDashboard />
             )}
@@ -61,8 +64,9 @@ function AppRoutes() {
 }
 
 function App() {
-  // Get basename for GitHub Pages
-  const basename = process.env.PUBLIC_URL || '/Visitor-Management-System';
+  // Get basename for GitHub Pages (only in production, not on localhost)
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const basename = isLocalhost ? '/' : (process.env.PUBLIC_URL || '/Visitor-Management-System');
   
   return (
     <AuthProvider>

@@ -359,16 +359,99 @@ const sendRequestRejectedEmail = async (request) => {
   return await sendEmail(request.visitor_email, template.subject, template.html, template.text);
 };
 
+const getThirdLevelNotificationTemplate = (request) => {
+  const visitDate = format(parseISO(request.visit_date), 'MMMM dd, yyyy');
+  return {
+    subject: `Visit Request Pending Third Level Approval - Request #${request.id}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: #17a2b8; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+            .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
+            .info-row { margin: 10px 0; }
+            .label { font-weight: bold; color: #17a2b8; }
+            .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+            .button { display: inline-block; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h2>Visit Request Pending Third Level Approval</h2>
+            </div>
+            <div class="content">
+              <p>Dear Third Level Approver,</p>
+              <p>A visit request has been passed to you for third level approval.</p>
+              
+              <h3>Request Details:</h3>
+              <div class="info-row"><span class="label">Request ID:</span> #${request.id}</div>
+              <div class="info-row"><span class="label">Visitor Name:</span> ${request.visitor_name}</div>
+              <div class="info-row"><span class="label">Email:</span> ${request.visitor_email}</div>
+              <div class="info-row"><span class="label">Visit Date:</span> ${visitDate}</div>
+              <div class="info-row"><span class="label">Company:</span> ${request.company_name}</div>
+              <div class="info-row"><span class="label">Contact:</span> ${request.contact_number}</div>
+              <div class="info-row"><span class="label">Purpose:</span> ${request.purpose}</div>
+              <div class="info-row"><span class="label">Number of Visitors:</span> ${request.number_of_visitors}</div>
+              ${request.coming_from ? `<div class="info-row"><span class="label">Coming From:</span> ${request.coming_from}</div>` : ''}
+              ${request.second_level_notes ? `<div class="info-row"><span class="label">Second Level Notes:</span> ${request.second_level_notes}</div>` : ''}
+              
+              <p style="margin-top: 20px;">Please log in to the dashboard to review and approve/reject this request.</p>
+              
+              <div class="footer">
+                <p>This is an automated email. Please do not reply.</p>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `,
+    text: `
+      Visit Request Pending Third Level Approval - Request #${request.id}
+      
+      Dear Third Level Approver,
+      
+      A visit request has been passed to you for third level approval.
+      
+      Request Details:
+      - Request ID: #${request.id}
+      - Visitor Name: ${request.visitor_name}
+      - Email: ${request.visitor_email}
+      - Visit Date: ${visitDate}
+      - Company: ${request.company_name}
+      - Contact: ${request.contact_number}
+      - Purpose: ${request.purpose}
+      - Number of Visitors: ${request.number_of_visitors}
+      ${request.coming_from ? `- Coming From: ${request.coming_from}` : ''}
+      ${request.second_level_notes ? `- Second Level Notes: ${request.second_level_notes}` : ''}
+      
+      Please log in to the dashboard to review and approve/reject this request.
+    `
+  };
+};
+
 const sendNewRequestNotificationEmail = async (request) => {
   const managerEmail = process.env.MANAGER_EMAIL || 'manager@warehouse.com';
   const template = getNewRequestNotificationTemplate(request);
   return await sendEmail(managerEmail, template.subject, template.html, template.text);
 };
 
+const sendThirdLevelNotificationEmail = async (request) => {
+  // Get third level approver email from request or use default
+  const thirdLevelApproverEmail = request.third_level_approver_email || process.env.THIRD_LEVEL_APPROVER_EMAIL || 'bharath.chandrasekaran@tvs.in';
+  const template = getThirdLevelNotificationTemplate(request);
+  return await sendEmail(thirdLevelApproverEmail, template.subject, template.html, template.text);
+};
+
 module.exports = {
   sendRequestSubmittedEmail,
   sendRequestApprovedEmail,
   sendRequestRejectedEmail,
-  sendNewRequestNotificationEmail
+  sendNewRequestNotificationEmail,
+  sendThirdLevelNotificationEmail
 };
+
 

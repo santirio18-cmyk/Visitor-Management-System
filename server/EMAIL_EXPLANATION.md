@@ -130,3 +130,4 @@ A: Use Gmail! It's the easiest to set up.
 **Q: Can visitors use any email?**
 A: Yes, visitors enter their own email in the form.
 
+

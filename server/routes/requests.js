@@ -164,11 +164,13 @@ router.get('/', authenticate, (req, res) => {
              COALESCE(r.visitor_name, u.name) as visitor_name, 
              COALESCE(r.visitor_email, u.email) as visitor_email,
              m.name as manager_name,
-             s.name as second_level_approver_name
+             s.name as second_level_approver_name,
+             t.name as third_level_approver_name
              FROM visit_requests r
              LEFT JOIN users u ON r.visitor_id = u.id
              LEFT JOIN users m ON r.manager_id = m.id
              LEFT JOIN users s ON r.second_level_approver_id = s.id
+             LEFT JOIN users t ON r.third_level_approver_id = t.id
              WHERE r.visitor_id = ?
              ORDER BY r.created_at DESC`;
     params = [req.user.id];
@@ -177,23 +179,42 @@ router.get('/', authenticate, (req, res) => {
              COALESCE(r.visitor_name, u.name) as visitor_name, 
              COALESCE(r.visitor_email, u.email) as visitor_email,
              m.name as manager_name,
-             s.name as second_level_approver_name
+             s.name as second_level_approver_name,
+             t.name as third_level_approver_name
              FROM visit_requests r
              LEFT JOIN users u ON r.visitor_id = u.id
              LEFT JOIN users m ON r.manager_id = m.id
              LEFT JOIN users s ON r.second_level_approver_id = s.id
+             LEFT JOIN users t ON r.third_level_approver_id = t.id
              ORDER BY r.created_at DESC`;
   } else if (req.user.role === 'second_level_approver') {
     query = `SELECT r.*, 
              COALESCE(r.visitor_name, u.name) as visitor_name, 
              COALESCE(r.visitor_email, u.email) as visitor_email,
              m.name as manager_name,
-             s.name as second_level_approver_name
+             s.name as second_level_approver_name,
+             t.name as third_level_approver_name
              FROM visit_requests r
              LEFT JOIN users u ON r.visitor_id = u.id
              LEFT JOIN users m ON r.manager_id = m.id
              LEFT JOIN users s ON r.second_level_approver_id = s.id
+             LEFT JOIN users t ON r.third_level_approver_id = t.id
              WHERE r.status = 'pending_second_approval' OR r.second_level_approver_id = ?
+             ORDER BY r.created_at DESC`;
+    params = [req.user.id];
+  } else if (req.user.role === 'third_level_approver') {
+    query = `SELECT r.*, 
+             COALESCE(r.visitor_name, u.name) as visitor_name, 
+             COALESCE(r.visitor_email, u.email) as visitor_email,
+             m.name as manager_name,
+             s.name as second_level_approver_name,
+             t.name as third_level_approver_name
+             FROM visit_requests r
+             LEFT JOIN users u ON r.visitor_id = u.id
+             LEFT JOIN users m ON r.manager_id = m.id
+             LEFT JOIN users s ON r.second_level_approver_id = s.id
+             LEFT JOIN users t ON r.third_level_approver_id = t.id
+             WHERE r.status = 'pending_third_approval' OR r.third_level_approver_id = ?
              ORDER BY r.created_at DESC`;
     params = [req.user.id];
   } else {
@@ -201,11 +222,13 @@ router.get('/', authenticate, (req, res) => {
              COALESCE(r.visitor_name, u.name) as visitor_name, 
              COALESCE(r.visitor_email, u.email) as visitor_email,
              m.name as manager_name,
-             s.name as second_level_approver_name
+             s.name as second_level_approver_name,
+             t.name as third_level_approver_name
              FROM visit_requests r
              LEFT JOIN users u ON r.visitor_id = u.id
              LEFT JOIN users m ON r.manager_id = m.id
              LEFT JOIN users s ON r.second_level_approver_id = s.id
+             LEFT JOIN users t ON r.third_level_approver_id = t.id
              ORDER BY r.created_at DESC`;
   }
 
@@ -227,11 +250,13 @@ router.get('/:id', authenticate, (req, res) => {
      COALESCE(r.visitor_name, u.name) as visitor_name, 
      COALESCE(r.visitor_email, u.email) as visitor_email,
      m.name as manager_name,
-     s.name as second_level_approver_name
+     s.name as second_level_approver_name,
+     t.name as third_level_approver_name
      FROM visit_requests r
      LEFT JOIN users u ON r.visitor_id = u.id
      LEFT JOIN users m ON r.manager_id = m.id
      LEFT JOIN users s ON r.second_level_approver_id = s.id
+     LEFT JOIN users t ON r.third_level_approver_id = t.id
      WHERE r.id = ?`,
     [id],
     (err, request) => {
@@ -360,10 +385,11 @@ router.patch('/:id/status', authenticate, authorize('warehouse_manager'), [
   });
 });
 
-// Approve/Reject request (Second Level Approver)
+// Approve/Reject/Pass to Third Level (Second Level Approver)
 router.patch('/:id/second-level-status', authenticate, authorize('second_level_approver'), [
-  body('status').isIn(['approved', 'rejected']).withMessage('Status must be approved or rejected'),
-  body('second_level_notes').optional().trim()
+  body('status').isIn(['approved', 'rejected', 'pass_to_third_level']).withMessage('Status must be approved, rejected, or pass_to_third_level'),
+  body('second_level_notes').optional().trim(),
+  body('third_level_approver_id').optional().isInt().withMessage('Third level approver ID must be a number')
 ], (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -371,7 +397,7 @@ router.patch('/:id/second-level-status', authenticate, authorize('second_level_a
   }
 
   const { id } = req.params;
-  const { status, second_level_notes } = req.body;
+  const { status, second_level_notes, third_level_approver_id } = req.body;
   const db = getDb();
 
   // Check if request exists and is pending second level approval
@@ -386,11 +412,146 @@ router.patch('/:id/second-level-status', authenticate, authorize('second_level_a
       return res.status(400).json({ error: 'Request is not pending second level approval' });
     }
 
+    // Helper function to execute update and return response
+    function executeUpdate(updateQuery, updateParams) {
+      db.run(updateQuery, updateParams, function(err) {
+        if (err) {
+          return res.status(500).json({ error: 'Failed to update request' });
+        }
+
+        // Get updated request
+        db.get(
+          `SELECT r.*, 
+           COALESCE(r.visitor_name, u.name) as visitor_name, 
+           COALESCE(r.visitor_email, u.email) as visitor_email,
+           m.name as manager_name,
+           s.name as second_level_approver_name,
+           t.name as third_level_approver_name
+           FROM visit_requests r
+           LEFT JOIN users u ON r.visitor_id = u.id
+           LEFT JOIN users m ON r.manager_id = m.id
+           LEFT JOIN users s ON r.second_level_approver_id = s.id
+           LEFT JOIN users t ON r.third_level_approver_id = t.id
+           WHERE r.id = ?`,
+          [id],
+          async (err, updatedRequest) => {
+            if (err) {
+              return res.status(500).json({ error: 'Failed to fetch updated request' });
+            }
+            
+            // Send email notification to third level approver
+            emailService.sendThirdLevelNotificationEmail(updatedRequest).catch(err => 
+              console.error('Failed to send third level notification:', err)
+            );
+            
+            res.json({ request: updatedRequest });
+          }
+        );
+      });
+    }
+
+    // Handle pass to third level
+    if (status === 'pass_to_third_level') {
+      // Get a third level approver if not provided
+      if (!third_level_approver_id) {
+        db.get('SELECT id FROM users WHERE role = ? LIMIT 1', ['third_level_approver'], (err, approver) => {
+          if (err) {
+            return res.status(500).json({ error: 'Database error finding approver' });
+          }
+          if (!approver) {
+            return res.status(400).json({ error: 'No third level approver available' });
+          }
+          const updateQuery = `UPDATE visit_requests 
+                               SET status = ?, second_level_approver_id = ?, third_level_approver_id = ?, second_level_notes = ?, updated_at = CURRENT_TIMESTAMP
+                               WHERE id = ?`;
+          const updateParams = ['pending_third_approval', req.user.id, approver.id, second_level_notes || null, id];
+          executeUpdate(updateQuery, updateParams);
+        });
+      } else {
+        const updateQuery = `UPDATE visit_requests 
+                             SET status = ?, second_level_approver_id = ?, third_level_approver_id = ?, second_level_notes = ?, updated_at = CURRENT_TIMESTAMP
+                             WHERE id = ?`;
+        const updateParams = ['pending_third_approval', req.user.id, third_level_approver_id, second_level_notes || null, id];
+        executeUpdate(updateQuery, updateParams);
+      }
+    } else {
+      // Approve or reject
+      db.run(
+        `UPDATE visit_requests 
+         SET status = ?, second_level_approver_id = ?, second_level_notes = ?, updated_at = CURRENT_TIMESTAMP
+         WHERE id = ?`,
+        [status, req.user.id, second_level_notes || null, id],
+        function(err) {
+          if (err) {
+            return res.status(500).json({ error: 'Failed to update request' });
+          }
+
+          // Get updated request
+          db.get(
+            `SELECT r.*, 
+             COALESCE(r.visitor_name, u.name) as visitor_name, 
+             COALESCE(r.visitor_email, u.email) as visitor_email,
+             m.name as manager_name,
+             s.name as second_level_approver_name,
+             t.name as third_level_approver_name
+             FROM visit_requests r
+             LEFT JOIN users u ON r.visitor_id = u.id
+             LEFT JOIN users m ON r.manager_id = m.id
+             LEFT JOIN users s ON r.second_level_approver_id = s.id
+             LEFT JOIN users t ON r.third_level_approver_id = t.id
+             WHERE r.id = ?`,
+            [id],
+            async (err, updatedRequest) => {
+              if (err) {
+                return res.status(500).json({ error: 'Failed to fetch updated request' });
+              }
+              
+              // Send email notification
+              if (status === 'approved') {
+                emailService.sendRequestApprovedEmail(updatedRequest).catch(err => 
+                  console.error('Failed to send approval email:', err)
+                );
+              } else if (status === 'rejected') {
+                emailService.sendRequestRejectedEmail(updatedRequest).catch(err => 
+                  console.error('Failed to send rejection email:', err)
+                );
+              }
+              
+              res.json({ request: updatedRequest });
+            }
+          );
+        }
+      );
+    }
+  });
+});
+
+// Approve/Reject request (Third Level Approver)
+router.patch('/:id/third-level-status', authenticate, authorize('third_level_approver'), [
+  body('status').isIn(['approved', 'rejected']).withMessage('Status must be approved or rejected'),
+  body('third_level_notes').optional().trim()
+], (req, res) => {
+  const { id } = req.params;
+  const { status, third_level_notes } = req.body;
+  const db = getDb();
+
+  // Check if request exists and is pending third level approval
+  db.get('SELECT * FROM visit_requests WHERE id = ?', [id], (err, request) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    if (!request) {
+      return res.status(404).json({ error: 'Request not found' });
+    }
+    if (request.status !== 'pending_third_approval') {
+      return res.status(400).json({ error: 'Request is not pending third level approval' });
+    }
+
     db.run(
       `UPDATE visit_requests 
-       SET status = ?, second_level_approver_id = ?, second_level_notes = ?, updated_at = CURRENT_TIMESTAMP
+       SET status = ?, third_level_approver_id = ?, third_level_notes = ?, updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
-      [status, req.user.id, second_level_notes || null, id],
+      [status, req.user.id, third_level_notes || null, id],
       function(err) {
         if (err) {
           return res.status(500).json({ error: 'Failed to update request' });
@@ -402,11 +563,13 @@ router.patch('/:id/second-level-status', authenticate, authorize('second_level_a
            COALESCE(r.visitor_name, u.name) as visitor_name, 
            COALESCE(r.visitor_email, u.email) as visitor_email,
            m.name as manager_name,
-           s.name as second_level_approver_name
+           s.name as second_level_approver_name,
+           t.name as third_level_approver_name
            FROM visit_requests r
            LEFT JOIN users u ON r.visitor_id = u.id
            LEFT JOIN users m ON r.manager_id = m.id
            LEFT JOIN users s ON r.second_level_approver_id = s.id
+           LEFT JOIN users t ON r.third_level_approver_id = t.id
            WHERE r.id = ?`,
           [id],
           async (err, updatedRequest) => {

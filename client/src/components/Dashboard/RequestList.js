@@ -39,6 +39,14 @@ const RequestList = ({ requests, userRole, onStatusUpdate, onDelete }) => {
     }
   };
 
+  const handlePassToThirdLevel = async () => {
+    if (selectedRequest && onStatusUpdate) {
+      await onStatusUpdate(selectedRequest.id, 'pass_to_third_level', managerNotes);
+      setShowModal(false);
+      setManagerNotes('');
+    }
+  };
+
   const handleDelete = async (requestId) => {
     if (window.confirm('Are you sure you want to delete this request?')) {
       try {
@@ -93,7 +101,9 @@ const RequestList = ({ requests, userRole, onStatusUpdate, onDelete }) => {
                   <td>{request.number_of_visitors}</td>
                   <td>
                     <span className={`status-badge status-${request.status.replace('_', '-')}`}>
-                      {request.status === 'pending_second_approval' ? 'Pending 2nd Level' : request.status}
+                      {request.status === 'pending_second_approval' ? 'Pending 2nd Level' : 
+                       request.status === 'pending_third_approval' ? 'Pending 3rd Level' : 
+                       request.status}
                     </span>
                   </td>
                   <td>
@@ -134,6 +144,7 @@ const RequestList = ({ requests, userRole, onStatusUpdate, onDelete }) => {
           onApprove={handleApprove}
           onReject={handleReject}
           onPassToSecondLevel={handlePassToSecondLevel}
+          onPassToThirdLevel={handlePassToThirdLevel}
           managerNotes={managerNotes}
           onManagerNotesChange={setManagerNotes}
         />

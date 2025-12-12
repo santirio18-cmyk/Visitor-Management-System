@@ -13,7 +13,7 @@ router.post('/register', [
   body('name').trim().notEmpty().withMessage('Name is required'),
   body('email').isEmail().withMessage('Valid email is required'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-  body('role').isIn(['visitor', 'warehouse_manager', 'second_level_approver']).withMessage('Invalid role')
+  body('role').isIn(['visitor', 'warehouse_manager', 'second_level_approver', 'third_level_approver']).withMessage('Invalid role')
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {

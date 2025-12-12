@@ -22,3 +22,4 @@ router.get('/', authenticate, authorize('warehouse_manager'), (req, res) => {
 
 module.exports = router;
 
+

@@ -44,7 +44,7 @@ const createTables = async () => {
         name TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
-        role TEXT NOT NULL CHECK(role IN ('visitor', 'warehouse_manager', 'second_level_approver')),
+        role TEXT NOT NULL CHECK(role IN ('visitor', 'warehouse_manager', 'second_level_approver', 'third_level_approver')),
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )`, (err) => {
         if (err) {
@@ -67,16 +67,19 @@ const createTables = async () => {
         additional_visitor_names TEXT,
         coming_from TEXT,
         visitor_type TEXT,
-        status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'approved', 'rejected', 'pending_second_approval')),
+        status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'approved', 'rejected', 'pending_second_approval', 'pending_third_approval')),
         manager_id INTEGER,
         second_level_approver_id INTEGER,
+        third_level_approver_id INTEGER,
         manager_notes TEXT,
         second_level_notes TEXT,
+        third_level_notes TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (visitor_id) REFERENCES users(id),
         FOREIGN KEY (manager_id) REFERENCES users(id),
-        FOREIGN KEY (second_level_approver_id) REFERENCES users(id)
+        FOREIGN KEY (second_level_approver_id) REFERENCES users(id),
+        FOREIGN KEY (third_level_approver_id) REFERENCES users(id)
       )`, (err) => {
         if (err) {
           reject(err);
@@ -106,6 +109,12 @@ const createTables = async () => {
             }
             if (!columnNames.includes('second_level_notes')) {
               db.run(`ALTER TABLE visit_requests ADD COLUMN second_level_notes TEXT`, () => {});
+            }
+            if (!columnNames.includes('third_level_approver_id')) {
+              db.run(`ALTER TABLE visit_requests ADD COLUMN third_level_approver_id INTEGER`, () => {});
+            }
+            if (!columnNames.includes('third_level_notes')) {
+              db.run(`ALTER TABLE visit_requests ADD COLUMN third_level_notes TEXT`, () => {});
             }
             
             // Check if visitor_id is NOT NULL and needs to be made nullable
@@ -175,6 +184,12 @@ const createApprovers = async () => {
       email: 'varadarajan.krishnamachari@tvs.in',
       password: 'V@ra2024#TVS!Approver2',
       role: 'second_level_approver'
+    },
+    {
+      name: 'Bharath Chandrasekaran',
+      email: 'bharath.chandrasekaran@tvs.in',
+      password: 'Bh@rath2024#TVS!Approver3',
+      role: 'third_level_approver'
     }
   ];
 
@@ -222,10 +237,12 @@ const createApprovers = async () => {
     });
   };
 
-  // Create all approvers
+  // Create all approvers sequentially to ensure they're all created
   for (const approver of approvers) {
     await createApprover(approver);
   }
+  
+  console.log('✓ All approver accounts processed');
 };
 
 const getDb = () => db;

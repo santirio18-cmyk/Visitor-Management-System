@@ -93,6 +93,7 @@ const Register = () => {
               <option value="visitor">Visitor</option>
               <option value="warehouse_manager">Warehouse Manager</option>
               <option value="second_level_approver">Second Level Approver</option>
+              <option value="third_level_approver">Third Level Approver</option>
             </select>
           </div>
           <button type="submit" className="btn btn-primary" disabled={loading}>

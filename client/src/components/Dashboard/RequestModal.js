@@ -9,6 +9,7 @@ const RequestModal = ({
   onApprove,
   onReject,
   onPassToSecondLevel,
+  onPassToThirdLevel,
   managerNotes,
   onManagerNotesChange
 }) => {
@@ -71,7 +72,9 @@ const RequestModal = ({
           <div className="detail-row">
             <strong>Status:</strong>
             <span className={`status-badge status-${request.status.replace('_', '-')}`}>
-              {request.status === 'pending_second_approval' ? 'Pending 2nd Level' : request.status}
+              {request.status === 'pending_second_approval' ? 'Pending 2nd Level' : 
+               request.status === 'pending_third_approval' ? 'Pending 3rd Level' : 
+               request.status}
             </span>
           </div>
 
@@ -103,6 +106,20 @@ const RequestModal = ({
             </div>
           )}
 
+          {request.third_level_approver_name && (
+            <div className="detail-row">
+              <strong>Third Level Approver:</strong>
+              <span>{request.third_level_approver_name}</span>
+            </div>
+          )}
+
+          {request.third_level_notes && (
+            <div className="detail-row">
+              <strong>Third Level Notes:</strong>
+              <span>{request.third_level_notes}</span>
+            </div>
+          )}
+
           {userRole === 'warehouse_manager' && request.status === 'pending' && (
             <div className="form-group" style={{ marginTop: '20px' }}>
               <label className="form-label">Manager Notes (Optional)</label>
@@ -119,6 +136,19 @@ const RequestModal = ({
           {userRole === 'second_level_approver' && request.status === 'pending_second_approval' && (
             <div className="form-group" style={{ marginTop: '20px' }}>
               <label className="form-label">Second Level Notes (Optional)</label>
+              <textarea
+                className="form-textarea"
+                value={managerNotes}
+                onChange={(e) => onManagerNotesChange(e.target.value)}
+                placeholder="Add any notes or comments..."
+                rows="3"
+              />
+            </div>
+          )}
+
+          {userRole === 'third_level_approver' && request.status === 'pending_third_approval' && (
+            <div className="form-group" style={{ marginTop: '20px' }}>
+              <label className="form-label">Third Level Notes (Optional)</label>
               <textarea
                 className="form-textarea"
                 value={managerNotes}
@@ -160,6 +190,29 @@ const RequestModal = ({
             </>
           )}
           {userRole === 'second_level_approver' && request.status === 'pending_second_approval' && (
+            <>
+              <button
+                onClick={onReject}
+                className="btn btn-danger"
+              >
+                Reject
+              </button>
+              <button
+                onClick={onPassToThirdLevel}
+                className="btn"
+                style={{ background: '#17a2b8', color: 'white' }}
+              >
+                Pass to 3rd Level
+              </button>
+              <button
+                onClick={onApprove}
+                className="btn btn-success"
+              >
+                Approve
+              </button>
+            </>
+          )}
+          {userRole === 'third_level_approver' && request.status === 'pending_third_approval' && (
             <>
               <button
                 onClick={onReject}

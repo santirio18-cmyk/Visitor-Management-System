@@ -62,6 +62,26 @@ const PublicRequestForm = () => {
     if (name === 'number_of_visitors' && errors.additional_visitor_names) {
       setErrors({ ...errors, additional_visitor_names: '' });
     }
+    
+    // Real-time validation: If visitor type changes to Internal, validate email
+    if (name === 'visitor_type') {
+      if (value === 'Internal' && newFormData.visitor_email && !newFormData.visitor_email.endsWith('@tvs.in')) {
+        setErrors({ ...errors, visitor_email: 'Internal employees must use @tvs.in email address' });
+      } else if (value === 'External' && errors.visitor_email && errors.visitor_email.includes('@tvs.in')) {
+        // Clear @tvs.in error if switching to External
+        setErrors({ ...errors, visitor_email: '' });
+      }
+    }
+    
+    // Real-time validation: If email changes and visitor type is Internal, validate
+    if (name === 'visitor_email' && newFormData.visitor_type === 'Internal') {
+      if (value && !value.endsWith('@tvs.in')) {
+        setErrors({ ...errors, visitor_email: 'Internal employees must use @tvs.in email address' });
+      } else if (value && value.endsWith('@tvs.in')) {
+        // Clear error if email is valid for Internal
+        setErrors({ ...errors, visitor_email: '' });
+      }
+    }
   };
 
   const validateForm = () => {
@@ -77,6 +97,8 @@ const PublicRequestForm = () => {
       newErrors.visitor_email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.visitor_email)) {
       newErrors.visitor_email = 'Valid email is required';
+    } else if (formData.visitor_type === 'Internal' && !formData.visitor_email.endsWith('@tvs.in')) {
+      newErrors.visitor_email = 'Internal employees must use @tvs.in email address';
     }
 
     if (!formData.visit_date) {
@@ -395,7 +417,7 @@ const PublicRequestForm = () => {
               value={formData.coming_from}
               onChange={handleChange}
               required
-              placeholder="Enter your location/city (e.g., New York, NY)"
+              placeholder="e.g., Chennai, Bangalore, Hyderabad"
             />
             {errors.coming_from && (
               <span className="simple-error">{errors.coming_from}</span>

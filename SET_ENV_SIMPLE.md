@@ -30,3 +30,4 @@ After redeploy, your backend will have the JWT_SECRET set automatically!
 
 **No need to use the Edit button - just redeploy!** 🚀
 
+

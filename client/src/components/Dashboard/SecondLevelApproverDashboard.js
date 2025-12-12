@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 import axios from 'axios';
@@ -8,6 +9,7 @@ import './Dashboard.css';
 
 const SecondLevelApproverDashboard = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -60,7 +62,7 @@ const SecondLevelApproverDashboard = () => {
             <h1 style={{ marginLeft: '20px' }}>Second Level Approver Dashboard</h1>
             <div className="header-actions">
               <span className="user-info">Welcome, {user?.name}</span>
-              <button onClick={logout} className="btn btn-secondary">
+              <button onClick={() => { logout(); navigate('/'); }} className="btn btn-secondary">
                 Logout
               </button>
             </div>

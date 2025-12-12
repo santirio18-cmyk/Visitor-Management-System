@@ -34,3 +34,4 @@ jobs:
         cd server
         gcloud app deploy app.yaml --quiet --project=${{ secrets.GCP_PROJECT_ID }}
 
+

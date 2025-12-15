@@ -194,15 +194,17 @@ const RequestForm = ({ onCancel, onSuccess }) => {
           </div>
 
           <div className="simple-form-field">
-            <label>Contact Number *</label>
+            <label>Contact Number * (10 digits only)</label>
             <input
               type="tel"
               name="contact_number"
               className={`simple-input ${errors.contact_number ? 'error' : ''}`}
               value={formData.contact_number}
               onChange={handleChange}
+              maxLength="10"
+              pattern="[0-9]{10}"
               required
-              placeholder="Enter your contact number"
+              placeholder="Enter 10-digit contact number"
             />
             {errors.contact_number && (
               <span className="simple-error">{errors.contact_number}</span>

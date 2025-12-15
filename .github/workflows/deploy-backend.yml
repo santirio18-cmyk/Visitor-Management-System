@@ -29,15 +29,37 @@ jobs:
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v1
 
+    - name: Verify Configuration
+      run: |
+        echo "=== Configuration Check ==="
+        echo "Project ID: ${{ secrets.GCP_PROJECT_ID }}"
+        cd server
+        echo "Current directory: $(pwd)"
+        echo "Files in server directory:"
+        ls -la
+        echo "Checking app.yaml:"
+        cat app.yaml
+        echo "Checking package.json:"
+        cat package.json | head -20
+
+    - name: Verify App Engine Access
+      run: |
+        echo "=== App Engine Verification ==="
+        gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+        gcloud app describe || echo "Warning: Could not describe app"
+        gcloud auth list
+
     - name: Deploy to App Engine
       run: |
         cd server
-        echo "Setting project to: ${{ secrets.GCP_PROJECT_ID }}"
-        gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
-        echo "Deploying to App Engine..."
-        gcloud app deploy app.yaml --quiet --project=${{ secrets.GCP_PROJECT_ID }} || {
-          echo "Deployment failed. Checking details..."
-          gcloud app describe --project=${{ secrets.GCP_PROJECT_ID }} || echo "App Engine may not be enabled"
+        echo "=== Starting Deployment ==="
+        echo "Project: ${{ secrets.GCP_PROJECT_ID }}"
+        echo "Deploying app.yaml..."
+        gcloud app deploy app.yaml --project=${{ secrets.GCP_PROJECT_ID }} --verbosity=debug 2>&1 || {
+          echo "=== Deployment Failed ==="
+          echo "Exit code: $?"
+          echo "Checking error details..."
+          gcloud app describe --project=${{ secrets.GCP_PROJECT_ID }} || echo "App Engine check failed"
           exit 1
         }
 

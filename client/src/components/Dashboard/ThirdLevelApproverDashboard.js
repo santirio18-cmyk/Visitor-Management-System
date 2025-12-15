@@ -57,40 +57,64 @@ const ThirdLevelApproverDashboard = () => {
 
   return (
     <div className="dashboard">
-      <div className="dashboard-header">
-        <div>
-          <h1>Third Level Approver Dashboard</h1>
-          <p>Welcome, {user?.name}</p>
+      <header className="dashboard-header">
+        <div className="container">
+          <div className="header-content">
+            <div className="logo-text">
+              <span className="logo-orange">my</span><span className="logo-blue">TVS</span>
+            </div>
+            <h1 style={{ marginLeft: '20px' }}>Third Level Approver Dashboard</h1>
+            <div className="header-actions">
+              <span className="user-info">Welcome, {user?.name}</span>
+              <button onClick={() => { logout(); navigate('/'); }} className="btn btn-secondary">
+                Logout
+              </button>
+            </div>
+          </div>
         </div>
-        <button onClick={() => { logout(); navigate('/'); }} className="btn btn-secondary">
-          Logout
-        </button>
-      </div>
+      </header>
 
-      <div className="stats-container">
-        <div className="stat-card">
-          <div className="stat-value">{stats.total}</div>
-          <div className="stat-label">Total Requests</div>
-        </div>
-        <div className="stat-card pending">
-          <div className="stat-value">{stats.pending}</div>
-          <div className="stat-label">Pending Approval</div>
-        </div>
-        <div className="stat-card approved">
-          <div className="stat-value">{stats.approved}</div>
-          <div className="stat-label">Approved</div>
-        </div>
-        <div className="stat-card rejected">
-          <div className="stat-value">{stats.rejected}</div>
-          <div className="stat-label">Rejected</div>
-        </div>
-      </div>
+      <main className="dashboard-main">
+        <div className="container">
+          <div className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-value">{stats.total}</div>
+              <div className="stat-label">Total Requests</div>
+            </div>
+            <div className="stat-card stat-pending">
+              <div className="stat-value">{stats.pending}</div>
+              <div className="stat-label">Pending Approval</div>
+            </div>
+            <div className="stat-card stat-approved">
+              <div className="stat-value">{stats.approved}</div>
+              <div className="stat-label">Approved</div>
+            </div>
+            <div className="stat-card stat-rejected">
+              <div className="stat-value">{stats.rejected}</div>
+              <div className="stat-label">Rejected</div>
+            </div>
+          </div>
 
-      <RequestList
-        requests={requests}
-        onStatusUpdate={handleStatusUpdate}
-        userRole="third_level_approver"
-      />
+          <div className="card">
+            <div className="card-header">
+              <h2 className="card-title">Third Level Approval Requests</h2>
+              <p style={{ color: '#666', fontSize: '14px', marginTop: '8px' }}>
+                These requests require your final approval decision.
+              </p>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="loading">Loading requests...</div>
+          ) : (
+            <RequestList
+              requests={requests}
+              userRole="third_level_approver"
+              onStatusUpdate={handleStatusUpdate}
+            />
+          )}
+        </div>
+      </main>
     </div>
   );
 };

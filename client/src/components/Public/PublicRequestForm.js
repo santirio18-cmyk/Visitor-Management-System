@@ -45,9 +45,16 @@ const PublicRequestForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    let processedValue = value;
+    
+    // Restrict contact_number to digits only and max 10 characters
+    if (name === 'contact_number') {
+      processedValue = value.replace(/[^0-9]/g, '').slice(0, 10);
+    }
+    
     const newFormData = {
       ...formData,
-      [name]: name === 'number_of_visitors' ? parseInt(value) || 1 : value
+      [name]: name === 'number_of_visitors' ? parseInt(value) || 1 : processedValue
     };
     
     // Clear additional_visitor_names if number of visitors becomes 1
@@ -136,6 +143,8 @@ const PublicRequestForm = () => {
 
     if (!formData.contact_number.trim()) {
       newErrors.contact_number = 'Contact number is required';
+    } else if (!/^[0-9]{10}$/.test(formData.contact_number.trim())) {
+      newErrors.contact_number = 'Contact number must be exactly 10 digits';
     }
 
     if (!formData.coming_from.trim()) {
@@ -427,15 +436,17 @@ const PublicRequestForm = () => {
           </div>
 
           <div className="simple-form-field">
-            <label>Contact Number *</label>
+            <label>Contact Number * (10 digits only)</label>
             <input
               type="tel"
               name="contact_number"
               className={`simple-input ${errors.contact_number ? 'error' : ''}`}
               value={formData.contact_number}
               onChange={handleChange}
+              maxLength="10"
+              pattern="[0-9]{10}"
               required
-              placeholder="Enter your contact number"
+              placeholder="Enter 10-digit contact number"
             />
             {errors.contact_number && (
               <span className="simple-error">{errors.contact_number}</span>

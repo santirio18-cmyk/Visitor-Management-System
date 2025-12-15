@@ -23,9 +23,16 @@ const RequestForm = ({ onCancel, onSuccess }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    let processedValue = value;
+    
+    // Restrict contact_number to digits only and max 10 characters
+    if (name === 'contact_number') {
+      processedValue = value.replace(/[^0-9]/g, '').slice(0, 10);
+    }
+    
     const newFormData = {
       ...formData,
-      [name]: name === 'number_of_visitors' ? parseInt(value) || 1 : value
+      [name]: name === 'number_of_visitors' ? parseInt(value) || 1 : processedValue
     };
     
     // If start_date changes and end_date is before new start_date, clear end_date
@@ -70,6 +77,8 @@ const RequestForm = ({ onCancel, onSuccess }) => {
 
     if (!formData.contact_number.trim()) {
       newErrors.contact_number = 'Contact number is required';
+    } else if (!/^[0-9]{10}$/.test(formData.contact_number.trim())) {
+      newErrors.contact_number = 'Contact number must be exactly 10 digits';
     }
 
     if (formData.number_of_visitors < 1) {

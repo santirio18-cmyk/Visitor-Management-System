@@ -14,7 +14,14 @@ router.post('/public', [
   body('end_date').optional().isISO8601().withMessage('Valid end date is required'),
   body('purpose').trim().notEmpty().withMessage('Visiting purpose is required'),
   body('company_name').trim().notEmpty().withMessage('Company name is required'),
-  body('contact_number').trim().notEmpty().withMessage('Contact number is required'),
+  body('contact_number')
+    .trim()
+    .notEmpty()
+    .withMessage('Contact number is required')
+    .isLength({ min: 10, max: 10 })
+    .withMessage('Contact number must be exactly 10 digits')
+    .matches(/^[0-9]{10}$/)
+    .withMessage('Contact number must contain only digits'),
   body('visitor_name').trim().notEmpty().withMessage('Your name is required'),
   body('visitor_email').isEmail().withMessage('Valid email is required'),
   body('coming_from').trim().notEmpty().withMessage('Coming from location is required'),
@@ -110,7 +117,14 @@ router.post('/', authenticate, authorize('visitor'), [
   body('end_date').optional().isISO8601().withMessage('Valid end date is required'),
   body('purpose').trim().notEmpty().withMessage('Purpose is required'),
   body('company_name').trim().notEmpty().withMessage('Company name is required'),
-  body('contact_number').trim().notEmpty().withMessage('Contact number is required'),
+  body('contact_number')
+    .trim()
+    .notEmpty()
+    .withMessage('Contact number is required')
+    .isLength({ min: 10, max: 10 })
+    .withMessage('Contact number must be exactly 10 digits')
+    .matches(/^[0-9]{10}$/)
+    .withMessage('Contact number must contain only digits'),
   body('number_of_visitors').isInt({ min: 1 }).withMessage('Number of visitors must be at least 1')
 ], (req, res) => {
   const errors = validationResult(req);

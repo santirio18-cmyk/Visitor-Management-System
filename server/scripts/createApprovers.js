@@ -18,6 +18,12 @@ const approvers = [
     email: 'varadarajan.krishnamachari@tvs.in',
     password: 'V@ra2024#TVS!Approver2',
     role: 'second_level_approver'
+  },
+  {
+    name: 'Bharath Chandrasekaran',
+    email: 'bharath.chandrasekaran@tvs.in',
+    password: 'Bh@rath2024#TVS!Approver3',
+    role: 'third_level_approver'
   }
 ];
 
@@ -92,6 +98,11 @@ async function createApprovers() {
     console.log('   Email: varadarajan.krishnamachari@tvs.in');
     console.log('   Password: V@ra2024#TVS!Approver2');
     console.log('   Role: Second Level Approver\n');
+    console.log('3️⃣  THIRD LEVEL APPROVER:');
+    console.log('   Name: Bharath Chandrasekaran');
+    console.log('   Email: bharath.chandrasekaran@tvs.in');
+    console.log('   Password: Bh@rath2024#TVS!Approver3');
+    console.log('   Role: Third Level Approver\n');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     
     db.close((err) => {
@@ -118,5 +129,7 @@ db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='users'", (er
 
   createApprovers();
 });
+
+
 
 

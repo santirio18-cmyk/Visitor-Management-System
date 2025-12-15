@@ -105,14 +105,28 @@ const createTables = async () => {
               db.run(`ALTER TABLE visit_requests ADD COLUMN visitor_type TEXT`, () => {});
             }
             if (!columnNames.includes('start_date')) {
-              db.run(`ALTER TABLE visit_requests ADD COLUMN start_date DATE`, () => {});
+              db.run(`ALTER TABLE visit_requests ADD COLUMN start_date DATE`, (err) => {
+                if (!err) {
+                  // Migrate existing visit_date to start_date after column is added
+                  db.run(`UPDATE visit_requests SET start_date = visit_date WHERE start_date IS NULL AND visit_date IS NOT NULL`, () => {});
+                }
+              });
             }
             if (!columnNames.includes('end_date')) {
-              db.run(`ALTER TABLE visit_requests ADD COLUMN end_date DATE`, () => {});
+              db.run(`ALTER TABLE visit_requests ADD COLUMN end_date DATE`, (err) => {
+                if (!err) {
+                  // Migrate existing visit_date to end_date after column is added
+                  db.run(`UPDATE visit_requests SET end_date = visit_date WHERE end_date IS NULL AND visit_date IS NOT NULL`, () => {});
+                }
+              });
             }
-            // Migrate existing visit_date to start_date if start_date is null
-            db.run(`UPDATE visit_requests SET start_date = visit_date WHERE start_date IS NULL`, () => {});
-            db.run(`UPDATE visit_requests SET end_date = visit_date WHERE end_date IS NULL`, () => {});
+            // Also update if columns exist but are null
+            if (columnNames.includes('start_date')) {
+              db.run(`UPDATE visit_requests SET start_date = visit_date WHERE start_date IS NULL AND visit_date IS NOT NULL`, () => {});
+            }
+            if (columnNames.includes('end_date')) {
+              db.run(`UPDATE visit_requests SET end_date = visit_date WHERE end_date IS NULL AND visit_date IS NOT NULL`, () => {});
+            }
             if (!columnNames.includes('second_level_approver_id')) {
               db.run(`ALTER TABLE visit_requests ADD COLUMN second_level_approver_id INTEGER`, () => {});
             }

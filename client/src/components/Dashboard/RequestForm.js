@@ -23,13 +23,24 @@ const RequestForm = ({ onCancel, onSuccess }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
+    const newFormData = {
       ...formData,
       [name]: name === 'number_of_visitors' ? parseInt(value) || 1 : value
-    });
+    };
+    
+    // If start_date changes and end_date is before new start_date, clear end_date
+    if (name === 'start_date' && newFormData.end_date && newFormData.end_date < value) {
+      newFormData.end_date = '';
+    }
+    
+    setFormData(newFormData);
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors({ ...errors, [name]: '' });
+    }
+    // Clear end_date error if start_date changes
+    if (name === 'start_date' && errors.end_date) {
+      setErrors({ ...errors, end_date: '' });
     }
   };
 

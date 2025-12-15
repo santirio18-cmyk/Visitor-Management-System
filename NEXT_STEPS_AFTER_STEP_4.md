@@ -83,3 +83,6 @@ Now complete Steps 1-3 (Service Account + Secrets), and the automation will work
 **You're almost there!** Just need to set up the authentication (Steps 1-3) and you'll have fully automated deployment! 🚀
 
 
+
+
+

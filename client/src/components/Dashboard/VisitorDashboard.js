@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 import axios from 'axios';
-import { format, addDays, startOfDay } from 'date-fns';
 import { API_BASE_URL } from '../../config';
 import RequestForm from './RequestForm';
 import RequestList from './RequestList';
@@ -40,11 +39,6 @@ const VisitorDashboard = () => {
   const handleRequestDeleted = (requestId) => {
     setRequests(requests.filter(req => req.id !== requestId));
     toast.success('Request deleted successfully');
-  };
-
-  const getMinDate = () => {
-    const today = startOfDay(new Date());
-    return format(addDays(today, 2), 'yyyy-MM-dd');
   };
 
   return (

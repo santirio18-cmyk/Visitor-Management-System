@@ -40,3 +40,6 @@ The database might not be initializing. Let me check the code...
 **First, run the logs command and share the error!** 🔍
 
 
+
+
+

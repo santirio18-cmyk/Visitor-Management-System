@@ -49,3 +49,6 @@ gcloud app logs tail -s default --limit 50
 **Run the logs command and share the error!** 🔍
 
 
+
+
+

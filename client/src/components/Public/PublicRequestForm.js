@@ -255,7 +255,7 @@ const PublicRequestForm = () => {
 
     try {
       const user = await login(loginData.email, loginData.password);
-      if (user.role === 'warehouse_manager' || user.role === 'second_level_approver') {
+      if (user.role === 'warehouse_manager' || user.role === 'second_level_approver' || user.role === 'third_level_approver') {
         toast.success('Login successful!');
         navigate('/dashboard');
       } else {

@@ -85,7 +85,12 @@ const RequestList = ({ requests, userRole, onStatusUpdate, onDelete }) => {
             <tbody>
               {requests.map((request) => (
                 <tr key={request.id}>
-                  <td>{format(parseISO(request.visit_date), 'MMM dd, yyyy')}</td>
+                  <td>
+                    {request.start_date && format(parseISO(request.start_date || request.visit_date), 'MMM dd, yyyy')}
+                    {request.end_date && request.end_date !== request.start_date && 
+                      ` - ${format(parseISO(request.end_date), 'MMM dd, yyyy')}`
+                    }
+                  </td>
                   <td>{request.company_name}</td>
                   <td>
                     <div>{request.visitor_name}</div>

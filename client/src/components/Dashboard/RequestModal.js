@@ -24,7 +24,12 @@ const RequestModal = ({
         <div className="modal-body">
           <div className="detail-row">
             <strong>Visit Date:</strong>
-            <span>{format(parseISO(request.visit_date), 'MMMM dd, yyyy')}</span>
+            <span>
+              {format(parseISO(request.start_date || request.visit_date), 'MMMM dd, yyyy')}
+              {request.end_date && request.end_date !== request.start_date && 
+                ` - ${format(parseISO(request.end_date), 'MMMM dd, yyyy')}`
+              }
+            </span>
           </div>
 
           <div className="detail-row">

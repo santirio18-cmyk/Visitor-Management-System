@@ -10,7 +10,8 @@ const router = express.Router();
 
 // Public endpoint - Create visit request (No login required)
 router.post('/public', [
-  body('visit_date').isISO8601().withMessage('Valid visit date is required'),
+  body('start_date').isISO8601().withMessage('Valid start date is required'),
+  body('end_date').optional().isISO8601().withMessage('Valid end date is required'),
   body('purpose').trim().notEmpty().withMessage('Visiting purpose is required'),
   body('company_name').trim().notEmpty().withMessage('Company name is required'),
   body('contact_number').trim().notEmpty().withMessage('Contact number is required'),
@@ -26,7 +27,7 @@ router.post('/public', [
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { visit_date, purpose, company_name, contact_number, number_of_visitors, visitor_name, visitor_email, additional_visitor_names, coming_from, visitor_type } = req.body;
+  const { start_date, end_date, purpose, company_name, contact_number, number_of_visitors, visitor_name, visitor_email, additional_visitor_names, coming_from, visitor_type } = req.body;
   
   // Validate Internal employees must use @tvs.in email
   if (visitor_type === 'Internal' && visitor_email && !visitor_email.endsWith('@tvs.in')) {
@@ -38,22 +39,33 @@ router.post('/public', [
   const db = getDb();
 
   try {
-    const visitDate = parseISO(visit_date);
+    const startDate = parseISO(start_date);
+    const endDateValue = end_date ? parseISO(end_date) : startDate;
     const today = startOfDay(new Date());
     const minDate = addDays(today, 2);
 
-    // Check if visit date is at least 2 days from today
-    if (!isAfter(visitDate, minDate) && differenceInDays(visitDate, today) < 2) {
+    // Check if start date is at least 2 days from today
+    if (!isAfter(startDate, minDate) && differenceInDays(startDate, today) < 2) {
       return res.status(400).json({ 
-        error: 'Visit date must be at least 2 days from today' 
+        error: 'Start date must be at least 2 days from today' 
       });
     }
 
+    // Check if end date is after start date
+    if (end_date && isAfter(startDate, endDateValue)) {
+      return res.status(400).json({ 
+        error: 'End date must be after or equal to start date' 
+      });
+    }
+
+    // Use start_date as visit_date for backward compatibility
+    const visit_date = start_date;
+
     db.run(
       `INSERT INTO visit_requests 
-       (visitor_id, visitor_name, visitor_email, visit_date, purpose, company_name, contact_number, number_of_visitors, additional_visitor_names, coming_from, visitor_type, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-      [null, visitor_name, visitor_email, visit_date, purpose, company_name, contact_number, number_of_visitors || 1, additional_visitor_names || null, coming_from || null, visitor_type],
+       (visitor_id, visitor_name, visitor_email, visit_date, start_date, end_date, purpose, company_name, contact_number, number_of_visitors, additional_visitor_names, coming_from, visitor_type, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+      [null, visitor_name, visitor_email, visit_date, start_date, end_date || start_date, purpose, company_name, contact_number, number_of_visitors || 1, additional_visitor_names || null, coming_from || null, visitor_type],
       function(err) {
         if (err) {
           return res.status(500).json({ error: 'Failed to create visit request' });
@@ -94,7 +106,8 @@ router.post('/public', [
 
 // Create visit request (Authenticated Visitor only)
 router.post('/', authenticate, authorize('visitor'), [
-  body('visit_date').isISO8601().withMessage('Valid visit date is required'),
+  body('start_date').isISO8601().withMessage('Valid start date is required'),
+  body('end_date').optional().isISO8601().withMessage('Valid end date is required'),
   body('purpose').trim().notEmpty().withMessage('Purpose is required'),
   body('company_name').trim().notEmpty().withMessage('Company name is required'),
   body('contact_number').trim().notEmpty().withMessage('Contact number is required'),
@@ -105,26 +118,37 @@ router.post('/', authenticate, authorize('visitor'), [
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { visit_date, purpose, company_name, contact_number, number_of_visitors } = req.body;
+  const { start_date, end_date, purpose, company_name, contact_number, number_of_visitors } = req.body;
   const db = getDb();
 
   try {
-    const visitDate = parseISO(visit_date);
+    const startDate = parseISO(start_date);
+    const endDateValue = end_date ? parseISO(end_date) : startDate;
     const today = startOfDay(new Date());
     const minDate = addDays(today, 2);
 
-    // Check if visit date is at least 2 days from today
-    if (!isAfter(visitDate, minDate) && differenceInDays(visitDate, today) < 2) {
+    // Check if start date is at least 2 days from today
+    if (!isAfter(startDate, minDate) && differenceInDays(startDate, today) < 2) {
       return res.status(400).json({ 
-        error: 'Visit date must be at least 2 days from today' 
+        error: 'Start date must be at least 2 days from today' 
       });
     }
 
+    // Check if end date is after start date
+    if (end_date && isAfter(startDate, endDateValue)) {
+      return res.status(400).json({ 
+        error: 'End date must be after or equal to start date' 
+      });
+    }
+
+    // Use start_date as visit_date for backward compatibility
+    const visit_date = start_date;
+
     db.run(
       `INSERT INTO visit_requests 
-       (visitor_id, visitor_name, visitor_email, visit_date, purpose, company_name, contact_number, number_of_visitors, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-      [req.user.id, req.user.name, req.user.email, visit_date, purpose, company_name, contact_number, number_of_visitors || 1],
+       (visitor_id, visitor_name, visitor_email, visit_date, start_date, end_date, purpose, company_name, contact_number, number_of_visitors, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+      [req.user.id, req.user.name, req.user.email, visit_date, start_date, end_date || start_date, purpose, company_name, contact_number, number_of_visitors || 1],
       function(err) {
         if (err) {
           return res.status(500).json({ error: 'Failed to create visit request' });
@@ -736,7 +760,8 @@ router.get('/export/excel', authenticate, (req, res) => {
       'Visitor Name': req.visitor_name || req.visitor_name || 'N/A',
       'Visitor Email': req.visitor_email || 'N/A',
       'Company Name': req.company_name || 'N/A',
-      'Visit Date': req.visit_date || 'N/A',
+      'Start Date': req.start_date || req.visit_date || 'N/A',
+      'End Date': req.end_date || req.start_date || req.visit_date || 'N/A',
       'Purpose': req.purpose || 'N/A',
       'Number of Visitors': req.number_of_visitors || 1,
       'Visitor Type': req.visitor_type || 'N/A',

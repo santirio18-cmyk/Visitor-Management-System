@@ -28,7 +28,11 @@ const createTransporter = () => {
 
 // Email templates
 const getRequestSubmittedTemplate = (request) => {
-  const visitDate = format(parseISO(request.visit_date), 'MMMM dd, yyyy');
+  const startDate = format(parseISO(request.start_date || request.visit_date), 'MMMM dd, yyyy');
+  const endDate = request.end_date && request.end_date !== request.start_date 
+    ? format(parseISO(request.end_date), 'MMMM dd, yyyy')
+    : null;
+  const visitDate = endDate ? `${startDate} - ${endDate}` : startDate;
   return {
     subject: `Visit Request Submitted - Request #${request.id}`,
     html: `
@@ -93,7 +97,11 @@ const getRequestSubmittedTemplate = (request) => {
 };
 
 const getRequestApprovedTemplate = (request) => {
-  const visitDate = format(parseISO(request.visit_date), 'MMMM dd, yyyy');
+  const startDate = format(parseISO(request.start_date || request.visit_date), 'MMMM dd, yyyy');
+  const endDate = request.end_date && request.end_date !== request.start_date 
+    ? format(parseISO(request.end_date), 'MMMM dd, yyyy')
+    : null;
+  const visitDate = endDate ? `${startDate} - ${endDate}` : startDate;
   return {
     subject: `Visit Request Approved - Request #${request.id}`,
     html: `
@@ -164,7 +172,11 @@ const getRequestApprovedTemplate = (request) => {
 };
 
 const getRequestRejectedTemplate = (request) => {
-  const visitDate = format(parseISO(request.visit_date), 'MMMM dd, yyyy');
+  const startDate = format(parseISO(request.start_date || request.visit_date), 'MMMM dd, yyyy');
+  const endDate = request.end_date && request.end_date !== request.start_date 
+    ? format(parseISO(request.end_date), 'MMMM dd, yyyy')
+    : null;
+  const visitDate = endDate ? `${startDate} - ${endDate}` : startDate;
   return {
     subject: `Visit Request Rejected - Request #${request.id}`,
     html: `
@@ -231,7 +243,11 @@ const getRequestRejectedTemplate = (request) => {
 };
 
 const getNewRequestNotificationTemplate = (request) => {
-  const visitDate = format(parseISO(request.visit_date), 'MMMM dd, yyyy');
+  const startDate = format(parseISO(request.start_date || request.visit_date), 'MMMM dd, yyyy');
+  const endDate = request.end_date && request.end_date !== request.start_date 
+    ? format(parseISO(request.end_date), 'MMMM dd, yyyy')
+    : null;
+  const visitDate = endDate ? `${startDate} - ${endDate}` : startDate;
   return {
     subject: `New Visit Request - Request #${request.id}`,
     html: `
@@ -360,7 +376,11 @@ const sendRequestRejectedEmail = async (request) => {
 };
 
 const getThirdLevelNotificationTemplate = (request) => {
-  const visitDate = format(parseISO(request.visit_date), 'MMMM dd, yyyy');
+  const startDate = format(parseISO(request.start_date || request.visit_date), 'MMMM dd, yyyy');
+  const endDate = request.end_date && request.end_date !== request.start_date 
+    ? format(parseISO(request.end_date), 'MMMM dd, yyyy')
+    : null;
+  const visitDate = endDate ? `${startDate} - ${endDate}` : startDate;
   return {
     subject: `Visit Request Pending Third Level Approval - Request #${request.id}`,
     html: `

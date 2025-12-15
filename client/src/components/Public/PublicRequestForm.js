@@ -15,7 +15,8 @@ const PublicRequestForm = () => {
   const [formData, setFormData] = useState({
     visitor_name: '',
     visitor_email: '',
-    visit_date: '',
+    start_date: '',
+    end_date: '',
     purpose: '',
     visitor_type: '',
     company_name: '',
@@ -87,7 +88,8 @@ const PublicRequestForm = () => {
   const validateForm = () => {
     const newErrors = {};
     const minDate = getMinDate();
-    const selectedDate = formData.visit_date;
+    const selectedStartDate = formData.start_date;
+    const selectedEndDate = formData.end_date;
 
     if (!formData.visitor_name.trim()) {
       newErrors.visitor_name = 'Your name is required';
@@ -101,10 +103,14 @@ const PublicRequestForm = () => {
       newErrors.visitor_email = 'Internal employees must use @tvs.in email address';
     }
 
-    if (!formData.visit_date) {
-      newErrors.visit_date = 'Visit date is required';
-    } else if (selectedDate < minDate) {
-      newErrors.visit_date = `Visit date must be at least 2 days from today (minimum: ${minDate})`;
+    if (!formData.start_date) {
+      newErrors.start_date = 'Start date is required';
+    } else if (selectedStartDate < minDate) {
+      newErrors.start_date = `Start date must be at least 2 days from today (minimum: ${minDate})`;
+    }
+
+    if (selectedEndDate && selectedEndDate < selectedStartDate) {
+      newErrors.end_date = 'End date must be after or equal to start date';
     }
 
     if (!formData.purpose.trim()) {
@@ -214,7 +220,8 @@ const PublicRequestForm = () => {
                 setFormData({
                   visitor_name: '',
                   visitor_email: '',
-                  visit_date: '',
+                  start_date: '',
+                  end_date: '',
                   purpose: '',
                   visitor_type: '',
                   company_name: '',
@@ -324,22 +331,40 @@ const PublicRequestForm = () => {
 
           <div className="simple-form-row">
             <div className="simple-form-field">
-              <label>Visit Date *</label>
+              <label>Start Date *</label>
               <input
                 type="date"
-                name="visit_date"
-                className={`simple-input ${errors.visit_date ? 'error' : ''}`}
-                value={formData.visit_date}
+                name="start_date"
+                className={`simple-input ${errors.start_date ? 'error' : ''}`}
+                value={formData.start_date}
                 onChange={handleChange}
                 min={getMinDate()}
                 required
-                placeholder="Select date"
+                placeholder="Select start date"
               />
-              {errors.visit_date && (
-                <span className="simple-error">{errors.visit_date}</span>
+              {errors.start_date && (
+                <span className="simple-error">{errors.start_date}</span>
               )}
             </div>
 
+            <div className="simple-form-field">
+              <label>End Date (Optional)</label>
+              <input
+                type="date"
+                name="end_date"
+                className={`simple-input ${errors.end_date ? 'error' : ''}`}
+                value={formData.end_date}
+                onChange={handleChange}
+                min={formData.start_date || getMinDate()}
+                placeholder="Select end date"
+              />
+              {errors.end_date && (
+                <span className="simple-error">{errors.end_date}</span>
+              )}
+            </div>
+          </div>
+
+          <div className="simple-form-row">
             <div className="simple-form-field">
               <label>Number of Visitors *</label>
               <input

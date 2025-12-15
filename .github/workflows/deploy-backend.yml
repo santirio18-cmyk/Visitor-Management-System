@@ -32,6 +32,15 @@ jobs:
     - name: Deploy to App Engine
       run: |
         cd server
-        gcloud app deploy app.yaml --quiet --project=${{ secrets.GCP_PROJECT_ID }}
+        echo "Setting project to: ${{ secrets.GCP_PROJECT_ID }}"
+        gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+        echo "Deploying to App Engine..."
+        gcloud app deploy app.yaml --quiet --project=${{ secrets.GCP_PROJECT_ID }} || {
+          echo "Deployment failed. Checking details..."
+          gcloud app describe --project=${{ secrets.GCP_PROJECT_ID }} || echo "App Engine may not be enabled"
+          exit 1
+        }
+
+
 
 

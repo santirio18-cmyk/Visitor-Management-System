@@ -29,15 +29,28 @@ jobs:
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v1
 
+    - name: Enable App Engine Admin API
+      run: |
+        PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
+        echo "Enabling App Engine Admin API for project: $PROJECT_ID"
+        gcloud services enable appengine.googleapis.com --project="$PROJECT_ID" || echo "API may already be enabled"
+
     - name: Verify Configuration
       run: |
         echo "=== Configuration Check ==="
+        echo "Checking secrets..."
+        echo "GCP_PROJECT_ID length: ${#GCP_PROJECT_ID}"
+        echo "GCP_SA_KEY length: ${#GCP_SA_KEY}"
+        
         if [ -z "${{ secrets.GCP_PROJECT_ID }}" ]; then
           echo "❌ ERROR: GCP_PROJECT_ID secret is not set!"
+          echo "Please add secret named exactly: GCP_PROJECT_ID"
+          echo "Value should be: carbon-theorem-474515-b2"
           exit 1
         fi
         if [ -z "${{ secrets.GCP_SA_KEY }}" ]; then
           echo "❌ ERROR: GCP_SA_KEY secret is not set!"
+          echo "Please add secret named exactly: GCP_SA_KEY"
           exit 1
         fi
         echo "✅ Project ID: ${{ secrets.GCP_PROJECT_ID }}"

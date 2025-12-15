@@ -55,6 +55,11 @@ const PublicRequestForm = () => {
       newFormData.additional_visitor_names = '';
     }
     
+    // If start_date changes and end_date is before new start_date, clear end_date
+    if (name === 'start_date' && newFormData.end_date && newFormData.end_date < value) {
+      newFormData.end_date = '';
+    }
+    
     setFormData(newFormData);
     if (errors[name]) {
       setErrors({ ...errors, [name]: '' });
@@ -62,6 +67,10 @@ const PublicRequestForm = () => {
     // Clear additional_visitor_names error if number of visitors changes
     if (name === 'number_of_visitors' && errors.additional_visitor_names) {
       setErrors({ ...errors, additional_visitor_names: '' });
+    }
+    // Clear end_date error if start_date changes
+    if (name === 'start_date' && errors.end_date) {
+      setErrors({ ...errors, end_date: '' });
     }
     
     // Real-time validation: If visitor type changes to Internal, validate email

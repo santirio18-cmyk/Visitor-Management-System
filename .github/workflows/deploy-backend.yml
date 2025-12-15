@@ -32,7 +32,16 @@ jobs:
     - name: Verify Configuration
       run: |
         echo "=== Configuration Check ==="
-        echo "Project ID: ${{ secrets.GCP_PROJECT_ID }}"
+        if [ -z "${{ secrets.GCP_PROJECT_ID }}" ]; then
+          echo "❌ ERROR: GCP_PROJECT_ID secret is not set!"
+          exit 1
+        fi
+        if [ -z "${{ secrets.GCP_SA_KEY }}" ]; then
+          echo "❌ ERROR: GCP_SA_KEY secret is not set!"
+          exit 1
+        fi
+        echo "✅ Project ID: ${{ secrets.GCP_PROJECT_ID }}"
+        echo "✅ Service Account Key: [SET]"
         cd server
         echo "Current directory: $(pwd)"
         echo "Files in server directory:"
@@ -45,21 +54,34 @@ jobs:
     - name: Verify App Engine Access
       run: |
         echo "=== App Engine Verification ==="
-        gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
-        gcloud app describe || echo "Warning: Could not describe app"
+        PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
+        if [ -z "$PROJECT_ID" ]; then
+          echo "❌ ERROR: GCP_PROJECT_ID is empty!"
+          exit 1
+        fi
+        echo "Setting project to: $PROJECT_ID"
+        gcloud config set project "$PROJECT_ID"
+        echo "Verifying App Engine access..."
+        gcloud app describe --project="$PROJECT_ID" || echo "Warning: Could not describe app"
+        echo "Current authentication:"
         gcloud auth list
 
     - name: Deploy to App Engine
       run: |
         cd server
+        PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
+        if [ -z "$PROJECT_ID" ]; then
+          echo "❌ ERROR: GCP_PROJECT_ID is empty!"
+          exit 1
+        fi
         echo "=== Starting Deployment ==="
-        echo "Project: ${{ secrets.GCP_PROJECT_ID }}"
+        echo "Project: $PROJECT_ID"
         echo "Deploying app.yaml..."
-        gcloud app deploy app.yaml --project=${{ secrets.GCP_PROJECT_ID }} --verbosity=debug 2>&1 || {
+        gcloud app deploy app.yaml --project="$PROJECT_ID" --verbosity=debug 2>&1 || {
           echo "=== Deployment Failed ==="
           echo "Exit code: $?"
           echo "Checking error details..."
-          gcloud app describe --project=${{ secrets.GCP_PROJECT_ID }} || echo "App Engine check failed"
+          gcloud app describe --project="$PROJECT_ID" || echo "App Engine check failed"
           exit 1
         }
 

@@ -214,9 +214,11 @@ router.get('/', authenticate, (req, res) => {
              LEFT JOIN users m ON r.manager_id = m.id
              LEFT JOIN users s ON r.second_level_approver_id = s.id
              LEFT JOIN users t ON r.third_level_approver_id = t.id
-             WHERE r.status = 'pending_third_approval' OR r.third_level_approver_id = ?
+             WHERE r.status = 'pending_third_approval' 
+                OR r.third_level_approver_id = ?
+                OR (r.status IN ('approved', 'rejected') AND r.third_level_approver_id = ?)
              ORDER BY r.created_at DESC`;
-    params = [req.user.id];
+    params = [req.user.id, req.user.id];
   } else {
     query = `SELECT r.*, 
              COALESCE(r.visitor_name, u.name) as visitor_name, 

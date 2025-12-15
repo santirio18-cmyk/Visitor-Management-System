@@ -44,6 +44,36 @@ const SecondLevelApproverDashboard = () => {
     }
   };
 
+  const handleExportExcel = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/requests/export/excel`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to export Excel');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `visit_requests_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success('Excel file downloaded successfully!');
+    } catch (error) {
+      toast.error('Failed to download Excel file');
+      console.error('Export error:', error);
+    }
+  };
+
   const stats = {
     total: requests.length,
     pending: requests.filter(r => r.status === 'pending_second_approval').length,
@@ -93,10 +123,21 @@ const SecondLevelApproverDashboard = () => {
 
           <div className="card">
             <div className="card-header">
-              <h2 className="card-title">Second Level Approval Requests</h2>
-              <p style={{ color: '#666', fontSize: '14px', marginTop: '8px' }}>
-                These requests have been passed to you for final approval.
-              </p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                <div>
+                  <h2 className="card-title">Second Level Approval Requests</h2>
+                  <p style={{ color: '#666', fontSize: '14px', marginTop: '8px' }}>
+                    These requests have been passed to you for final approval.
+                  </p>
+                </div>
+                <button
+                  onClick={handleExportExcel}
+                  className="btn btn-primary"
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <span>📥</span> Download Excel
+                </button>
+              </div>
             </div>
           </div>
 

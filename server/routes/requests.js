@@ -4,6 +4,7 @@ const { getDb } = require('../database/db');
 const { authenticate, authorize } = require('../middleware/auth');
 const { differenceInDays, parseISO, isAfter, addDays, startOfDay } = require('date-fns');
 const emailService = require('../services/emailService');
+const XLSX = require('xlsx');
 
 const router = express.Router();
 
@@ -619,6 +620,175 @@ router.delete('/:id', authenticate, authorize('visitor'), (req, res) => {
       }
       res.json({ message: 'Request deleted successfully' });
     });
+  });
+});
+
+// Export requests to Excel
+router.get('/export/excel', authenticate, (req, res) => {
+  const db = getDb();
+  const { status } = req.query; // Optional filter by status
+  let query;
+  let params = [];
+
+  // Use same query logic as GET /api/requests
+  if (req.user.role === 'visitor') {
+    query = `SELECT r.*, 
+             COALESCE(r.visitor_name, u.name) as visitor_name, 
+             COALESCE(r.visitor_email, u.email) as visitor_email,
+             m.name as manager_name,
+             s.name as second_level_approver_name,
+             t.name as third_level_approver_name
+             FROM visit_requests r
+             LEFT JOIN users u ON r.visitor_id = u.id
+             LEFT JOIN users m ON r.manager_id = m.id
+             LEFT JOIN users s ON r.second_level_approver_id = s.id
+             LEFT JOIN users t ON r.third_level_approver_id = t.id
+             WHERE r.visitor_id = ?`;
+    params = [req.user.id];
+    if (status) {
+      query += ' AND r.status = ?';
+      params.push(status);
+    }
+    query += ' ORDER BY r.created_at DESC';
+  } else if (req.user.role === 'warehouse_manager') {
+    query = `SELECT r.*, 
+             COALESCE(r.visitor_name, u.name) as visitor_name, 
+             COALESCE(r.visitor_email, u.email) as visitor_email,
+             m.name as manager_name,
+             s.name as second_level_approver_name,
+             t.name as third_level_approver_name
+             FROM visit_requests r
+             LEFT JOIN users u ON r.visitor_id = u.id
+             LEFT JOIN users m ON r.manager_id = m.id
+             LEFT JOIN users s ON r.second_level_approver_id = s.id
+             LEFT JOIN users t ON r.third_level_approver_id = t.id`;
+    if (status) {
+      query += ' WHERE r.status = ?';
+      params.push(status);
+    }
+    query += ' ORDER BY r.created_at DESC';
+  } else if (req.user.role === 'second_level_approver') {
+    query = `SELECT r.*, 
+             COALESCE(r.visitor_name, u.name) as visitor_name, 
+             COALESCE(r.visitor_email, u.email) as visitor_email,
+             m.name as manager_name,
+             s.name as second_level_approver_name,
+             t.name as third_level_approver_name
+             FROM visit_requests r
+             LEFT JOIN users u ON r.visitor_id = u.id
+             LEFT JOIN users m ON r.manager_id = m.id
+             LEFT JOIN users s ON r.second_level_approver_id = s.id
+             LEFT JOIN users t ON r.third_level_approver_id = t.id
+             WHERE r.status = 'pending_second_approval' OR r.second_level_approver_id = ?`;
+    params = [req.user.id];
+    if (status) {
+      query += ' AND r.status = ?';
+      params.push(status);
+    }
+    query += ' ORDER BY r.created_at DESC';
+  } else if (req.user.role === 'third_level_approver') {
+    query = `SELECT r.*, 
+             COALESCE(r.visitor_name, u.name) as visitor_name, 
+             COALESCE(r.visitor_email, u.email) as visitor_email,
+             m.name as manager_name,
+             s.name as second_level_approver_name,
+             t.name as third_level_approver_name
+             FROM visit_requests r
+             LEFT JOIN users u ON r.visitor_id = u.id
+             LEFT JOIN users m ON r.manager_id = m.id
+             LEFT JOIN users s ON r.second_level_approver_id = s.id
+             LEFT JOIN users t ON r.third_level_approver_id = t.id
+             WHERE r.status = 'pending_third_approval' 
+                OR r.third_level_approver_id = ?`;
+    params = [req.user.id];
+    if (status) {
+      query += ' AND r.status = ?';
+      params.push(status);
+    }
+    query += ' ORDER BY r.created_at DESC';
+  } else {
+    query = `SELECT r.*, 
+             COALESCE(r.visitor_name, u.name) as visitor_name, 
+             COALESCE(r.visitor_email, u.email) as visitor_email,
+             m.name as manager_name,
+             s.name as second_level_approver_name,
+             t.name as third_level_approver_name
+             FROM visit_requests r
+             LEFT JOIN users u ON r.visitor_id = u.id
+             LEFT JOIN users m ON r.manager_id = m.id
+             LEFT JOIN users s ON r.second_level_approver_id = s.id
+             LEFT JOIN users t ON r.third_level_approver_id = t.id`;
+    if (status) {
+      query += ' WHERE r.status = ?';
+      params.push(status);
+    }
+    query += ' ORDER BY r.created_at DESC';
+  }
+
+  db.all(query, params, (err, requests) => {
+    if (err) {
+      return res.status(500).json({ error: 'Failed to fetch requests' });
+    }
+
+    // Prepare data for Excel
+    const excelData = requests.map(req => ({
+      'Request ID': req.id,
+      'Visitor Name': req.visitor_name || req.visitor_name || 'N/A',
+      'Visitor Email': req.visitor_email || 'N/A',
+      'Company Name': req.company_name || 'N/A',
+      'Visit Date': req.visit_date || 'N/A',
+      'Purpose': req.purpose || 'N/A',
+      'Number of Visitors': req.number_of_visitors || 1,
+      'Visitor Type': req.visitor_type || 'N/A',
+      'Status': req.status || 'N/A',
+      'Manager': req.manager_name || 'N/A',
+      'Second Level Approver': req.second_level_approver_name || 'N/A',
+      'Third Level Approver': req.third_level_approver_name || 'N/A',
+      'Manager Notes': req.manager_notes || '',
+      'Second Level Notes': req.second_level_notes || '',
+      'Third Level Notes': req.third_level_notes || '',
+      'Created At': req.created_at || 'N/A',
+      'Updated At': req.updated_at || 'N/A'
+    }));
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(excelData);
+    
+    // Set column widths
+    const colWidths = [
+      { wch: 10 }, // Request ID
+      { wch: 20 }, // Visitor Name
+      { wch: 30 }, // Visitor Email
+      { wch: 20 }, // Company Name
+      { wch: 15 }, // Visit Date
+      { wch: 30 }, // Purpose
+      { wch: 15 }, // Number of Visitors
+      { wch: 15 }, // Visitor Type
+      { wch: 20 }, // Status
+      { wch: 25 }, // Manager
+      { wch: 25 }, // Second Level Approver
+      { wch: 25 }, // Third Level Approver
+      { wch: 30 }, // Manager Notes
+      { wch: 30 }, // Second Level Notes
+      { wch: 30 }, // Third Level Notes
+      { wch: 20 }, // Created At
+      { wch: 20 }  // Updated At
+    ];
+    ws['!cols'] = colWidths;
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Visit Requests');
+
+    // Generate Excel buffer
+    const excelBuffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+
+    // Set response headers
+    const filename = `visit_requests_${status || 'all'}_${new Date().toISOString().split('T')[0]}.xlsx`;
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+    // Send Excel file
+    res.send(excelBuffer);
   });
 });
 

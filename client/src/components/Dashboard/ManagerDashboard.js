@@ -49,6 +49,39 @@ const ManagerDashboard = () => {
     }
   };
 
+  const handleExportExcel = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const statusFilter = filter !== 'all' ? filter : '';
+      const url = `${API_BASE_URL}/api/requests/export/excel${statusFilter ? `?status=${statusFilter}` : ''}`;
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to export Excel');
+      }
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = `visit_requests_${statusFilter || 'all'}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(downloadUrl);
+      document.body.removeChild(a);
+      toast.success('Excel file downloaded successfully!');
+    } catch (error) {
+      toast.error('Failed to download Excel file');
+      console.error('Export error:', error);
+    }
+  };
+
   const filteredRequests = filter === 'all' 
     ? requests 
     : filter === 'pending_second_approval'
@@ -109,7 +142,16 @@ const ManagerDashboard = () => {
 
           <div className="card">
             <div className="card-header">
-              <h2 className="card-title">All Visit Requests</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '15px' }}>
+                <h2 className="card-title">All Visit Requests</h2>
+                <button
+                  onClick={handleExportExcel}
+                  className="btn btn-primary"
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <span>📥</span> Download Excel
+                </button>
+              </div>
               <div className="filter-buttons">
                 <button
                   className={`filter-btn ${filter === 'all' ? 'active' : ''}`}

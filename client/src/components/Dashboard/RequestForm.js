@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { format, addDays, startOfDay } from 'date-fns';
+import { format, startOfDay } from 'date-fns';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { API_BASE_URL } from '../../config';
@@ -60,7 +60,7 @@ const RequestForm = ({ onCancel, onSuccess }) => {
     if (!formData.start_date) {
       newErrors.start_date = 'Start date is required';
     } else if (selectedStartDate < minDate) {
-      newErrors.start_date = `Start date must be at least 2 days from today (minimum: ${minDate})`;
+      newErrors.start_date = 'Start date cannot be in the past';
     }
 
     if (selectedEndDate && selectedEndDate < selectedStartDate) {
@@ -120,7 +120,7 @@ const RequestForm = ({ onCancel, onSuccess }) => {
     <div className="simple-form-container">
       <div className="simple-form-card">
         <h2 className="simple-form-title">Request Warehouse Visit</h2>
-        <p className="simple-form-subtitle">Please fill in the details below. Visit date must be at least 2 days from today.</p>
+        <p className="simple-form-subtitle">Please fill in the details below. Select your visit date.</p>
         
         <form onSubmit={handleSubmit} className="simple-form">
           <div className="simple-form-row">

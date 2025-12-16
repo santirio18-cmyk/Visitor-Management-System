@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { format, addDays, startOfDay } from 'date-fns';
+import { format, startOfDay } from 'date-fns';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
@@ -122,7 +122,7 @@ const PublicRequestForm = () => {
     if (!formData.start_date) {
       newErrors.start_date = 'Start date is required';
     } else if (selectedStartDate < minDate) {
-      newErrors.start_date = `Start date must be at least 2 days from today (minimum: ${minDate})`;
+      newErrors.start_date = 'Start date cannot be in the past';
     }
 
     if (selectedEndDate && selectedEndDate < selectedStartDate) {
@@ -310,7 +310,7 @@ const PublicRequestForm = () => {
                   Visitor Management System
                 </h1>
                 <p className="simple-form-subtitle" style={{ fontSize: '12px', fontWeight: '700', color: '#2c5282', lineHeight: '1.2', marginBottom: '8px' }}>
-                  Please fill in the details below. Visit date must be at least 2 days from today.
+                  Please fill in the details below. Select your visit date.
                 </p>
               </div>
         

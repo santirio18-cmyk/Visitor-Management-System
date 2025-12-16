@@ -49,12 +49,11 @@ router.post('/public', [
     const startDate = parseISO(start_date);
     const endDateValue = end_date ? parseISO(end_date) : startDate;
     const today = startOfDay(new Date());
-    const minDate = addDays(today, 2);
 
-    // Check if start date is at least 2 days from today
-    if (!isAfter(startDate, minDate) && differenceInDays(startDate, today) < 2) {
+    // Check if start date is not in the past
+    if (isAfter(today, startDate) && differenceInDays(today, startDate) > 0) {
       return res.status(400).json({ 
-        error: 'Start date must be at least 2 days from today' 
+        error: 'Start date cannot be in the past' 
       });
     }
 
@@ -139,12 +138,11 @@ router.post('/', authenticate, authorize('visitor'), [
     const startDate = parseISO(start_date);
     const endDateValue = end_date ? parseISO(end_date) : startDate;
     const today = startOfDay(new Date());
-    const minDate = addDays(today, 2);
 
-    // Check if start date is at least 2 days from today
-    if (!isAfter(startDate, minDate) && differenceInDays(startDate, today) < 2) {
+    // Check if start date is not in the past
+    if (isAfter(today, startDate) && differenceInDays(today, startDate) > 0) {
       return res.status(400).json({ 
-        error: 'Start date must be at least 2 days from today' 
+        error: 'Start date cannot be in the past' 
       });
     }
 

@@ -18,7 +18,7 @@ const RequestForm = ({ onCancel, onSuccess }) => {
 
   const getMinDate = () => {
     const today = startOfDay(new Date());
-    return format(addDays(today, 2), 'yyyy-MM-dd');
+    return format(today, 'yyyy-MM-dd');
   };
 
   const handleChange = (e) => {

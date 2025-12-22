@@ -3,6 +3,7 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 const os = require('os');
+const cloudStorage = require('./cloudStorage');
 
 // Use /tmp on App Engine (writable), or current directory locally
 // Check if we're on App Engine by checking for GAE environment
@@ -22,16 +23,51 @@ try {
 
 let db;
 
-const init = () => {
-  return new Promise((resolve, reject) => {
-    db = new sqlite3.Database(DB_PATH, (err) => {
-      if (err) {
-        reject(err);
-        return;
+const init = async () => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Initialize Cloud Storage if on App Engine
+      if (isAppEngine) {
+        cloudStorage.initCloudStorage();
+        await cloudStorage.ensureBucketExists();
+        
+        // Try to download existing database from Cloud Storage
+        const downloaded = await cloudStorage.downloadDatabase(DB_PATH);
+        if (downloaded) {
+          console.log('Loaded existing database from Cloud Storage');
+        }
       }
-      console.log('Connected to SQLite database');
-      createTables().then(resolve).catch(reject);
-    });
+
+      // Ensure directory exists
+      if (!fs.existsSync(DB_DIR)) {
+        fs.mkdirSync(DB_DIR, { recursive: true });
+      }
+
+      db = new sqlite3.Database(DB_PATH, (err) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        console.log('Connected to SQLite database');
+        createTables().then(async () => {
+          // Upload database to Cloud Storage after initialization (if on App Engine)
+          if (isAppEngine) {
+            await cloudStorage.uploadDatabase(DB_PATH);
+          }
+          resolve();
+        }).catch(reject);
+      });
+
+      // Set up periodic uploads to Cloud Storage (every 5 minutes)
+      if (isAppEngine) {
+        setInterval(async () => {
+          await cloudStorage.uploadDatabase(DB_PATH);
+        }, 5 * 60 * 1000); // 5 minutes
+      }
+    } catch (error) {
+      console.error('Error initializing database:', error);
+      reject(error);
+    }
   });
 };
 
@@ -289,6 +325,7 @@ const close = () => {
 module.exports = {
   init,
   getDb,
-  close
+  close,
+  syncToCloudStorage
 };
 

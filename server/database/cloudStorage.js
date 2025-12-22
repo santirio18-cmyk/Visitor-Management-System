@@ -6,8 +6,11 @@ const path = require('path');
 let storage;
 let bucket;
 // Use existing bucket or create new one
-// Check for common bucket names first, then use env variable, then default
-const BUCKET_NAME = process.env.GCS_BUCKET_NAME || process.env.GOOGLE_CLOUD_PROJECT + '-db' || 'visitor-management-db';
+// Priority: 1) GCS_BUCKET_NAME env var, 2) Default App Engine bucket, 3) Project ID + '-db', 4) Default name
+const BUCKET_NAME = process.env.GCS_BUCKET_NAME || 
+                    (process.env.GOOGLE_CLOUD_PROJECT ? `${process.env.GOOGLE_CLOUD_PROJECT}.appspot.com` : null) ||
+                    (process.env.GOOGLE_CLOUD_PROJECT ? `${process.env.GOOGLE_CLOUD_PROJECT}-db` : null) ||
+                    'visitor-management-db';
 const DB_FILE_NAME = 'vendor_management.db';
 
 // Only initialize if on App Engine

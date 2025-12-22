@@ -306,8 +306,17 @@ const createApprovers = async () => {
 
 const getDb = () => db;
 
-const close = () => {
-  return new Promise((resolve, reject) => {
+const close = async () => {
+  return new Promise(async (resolve, reject) => {
+    // Upload database to Cloud Storage before closing (if on App Engine)
+    if (isAppEngine && db) {
+      try {
+        await cloudStorage.uploadDatabase(DB_PATH);
+      } catch (error) {
+        console.error('Error uploading database before close:', error.message);
+      }
+    }
+
     if (db) {
       db.close((err) => {
         if (err) {
@@ -320,6 +329,13 @@ const close = () => {
       resolve();
     }
   });
+};
+
+// Helper function to sync database to Cloud Storage
+const syncToCloudStorage = async () => {
+  if (isAppEngine) {
+    await cloudStorage.uploadDatabase(DB_PATH);
+  }
 };
 
 module.exports = {

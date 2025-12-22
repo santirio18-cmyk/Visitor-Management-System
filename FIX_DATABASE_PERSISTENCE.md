@@ -32,14 +32,34 @@ I've implemented **Cloud Storage persistence** to fix this issue:
 
 ## Setup Required
 
-### Step 1: Create Cloud Storage Bucket
+### Step 1: Use Existing Bucket or Create New One
+
+**Option A: Use Existing Bucket (Recommended if you already have buckets)**
+
+1. Go to Google Cloud Console: https://console.cloud.google.com/storage
+2. Check your existing buckets
+3. Choose one bucket to use for the database (or create a new one)
+4. Set the bucket name in `app.yaml`:
+
+```yaml
+env_variables:
+  GCS_BUCKET_NAME: your-existing-bucket-name
+```
+
+**Option B: Create New Bucket**
 
 1. Go to Google Cloud Console: https://console.cloud.google.com/storage
 2. Click **"Create Bucket"**
-3. Name: `visitor-management-db` (or set `GCS_BUCKET_NAME` env variable)
+3. Name: `visitor-management-db` (or any name you prefer)
 4. Location: `asia-southeast2` (match your App Engine region)
 5. Storage Class: `Standard`
 6. Click **"Create"**
+7. Add bucket name to `app.yaml`:
+
+```yaml
+env_variables:
+  GCS_BUCKET_NAME: visitor-management-db
+```
 
 ### Step 2: Grant App Engine Access
 

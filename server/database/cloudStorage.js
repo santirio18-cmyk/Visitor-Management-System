@@ -5,7 +5,9 @@ const path = require('path');
 // Initialize Cloud Storage client
 let storage;
 let bucket;
-const BUCKET_NAME = process.env.GCS_BUCKET_NAME || 'visitor-management-db';
+// Use existing bucket or create new one
+// Check for common bucket names first, then use env variable, then default
+const BUCKET_NAME = process.env.GCS_BUCKET_NAME || process.env.GOOGLE_CLOUD_PROJECT + '-db' || 'visitor-management-db';
 const DB_FILE_NAME = 'vendor_management.db';
 
 // Only initialize if on App Engine
